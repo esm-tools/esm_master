@@ -18,11 +18,60 @@ from .cli import verbose
 FUNCTION_PATH = esm_rcfile.get_rc_entry("FUNCTION_PATH", default="/dev/null")
 ESM_MASTER_DIR = os.getenv("PWD")
 
-COMPONENTS_YAML = FUNCTION_PATH + "/esm_master/setups2models.yaml"
+# PG: COMPONENTS_YAML is now built out of multiple small ones
+#COMPONENTS_YAML = FUNCTION_PATH + "/esm_master/setups2models.yaml"
+COMPONENTS_DIR = FUNCTION_PATH + "/esm_master/components/"
+SETUPS_DIR = FUNCTION_PATH + "/esm_master/setups/"
+COUPLINGS_DIR = FUNCTION_PATH + "/esm_master/couplings/"
 CONFIG_YAML = FUNCTION_PATH + "/esm_master/esm_master.yaml"
-VCS_FOLDER = FUNCTION_PATH + "/vcs"
+VCS_FOLDER = FUNCTION_PATH + "/vcs/"
 
 OVERALL_CONF_FILE = esm_rcfile.rcfile
+
+
+######################################################################################
+############################## Combine all YAMLS #####################################
+######################################################################################
+def combine_components_yaml():
+    """
+    Combines various YAML files in esm_master config directory.
+
+    The esm_master config directory is taken from the ``.esmtoolsrc`` file as
+    ``${FUNCTION_PATH}/esm_master/``. All files under the ``components``,
+    ``setups``, and ``couplings`` sub-directories are read into the dictionary.
+
+    Returns
+    -------
+    dict :
+        A dictionary equivalent of all components, couplings, setups, and
+        general information.
+    """
+    components_dict = {}
+    components_dict["components"] = {}
+    for component in [i for i in os.listdir(COMPONENTS_DIR) if i.endswith(".yaml")]:
+        comp_name = component.replace(".yaml", "")
+        comp_config = esm_parser.yaml_file_to_dict(COMPONENTS_DIR + component)
+        components_dict["components"][comp_name] = comp_config
+
+    components_dict["setups"] = {}
+    for setup in [i for i in os.listdir(SETUPS_DIR) if i.endswith(".yaml")]:
+        comp_name = setup.replace(".yaml", "")
+        comp_config = esm_parser.yaml_file_to_dict(SETUPS_DIR + setup)
+        components_dict["setups"][comp_name] = comp_config
+
+    components_dict["couplings"] = {}
+    for coupling in [i for i in os.listdir(COUPLINGS_DIR) if i.endswith(".yaml")]:
+        comp_name = coupling.replace(".yaml", "")
+        comp_config = esm_parser.yaml_file_to_dict(COUPLINGS_DIR + coupling)
+        components_dict["couplings"][comp_name] = comp_config
+    components_dict["defaults"] = esm_parser.yaml_file_to_dict(
+        FUNCTION_PATH + "/esm_master/defaults.yaml"
+    )
+    components_dict["esm-software"] = esm_parser.yaml_file_to_dict(
+        FUNCTION_PATH + "/esm_master/esm-software.yaml"
+    )
+    return components_dict
+
 
 ######################################################################################
 ############################## class "general_infos" #################################
@@ -864,7 +913,7 @@ class task:
 
 class setup_and_model_infos:
     def __init__(self, vcs, general):
-        self.config = esm_parser.yaml_file_to_dict(COMPONENTS_YAML)
+        self.config = combine_components_yaml()
         self.model_kinds = list(self.config.keys())
         self.meta_todos = general.meta_todos
         self.meta_command_order = general.meta_command_order
