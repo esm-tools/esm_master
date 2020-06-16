@@ -15,14 +15,14 @@ from .cli import verbose
 ##################################### globals ########################################
 ######################################################################################
 
-function_path = esm_rcfile.get_rc_entry("FUNCTION_PATH", default="/dev/null")
+FUNCTION_PATH = esm_rcfile.get_rc_entry("FUNCTION_PATH", default="/dev/null")
 ESM_MASTER_DIR = os.getenv("PWD")
 
-components_yaml = function_path + "/esm_master/setups2models.yaml"
-config_yaml = function_path + "/esm_master/esm_master.yaml"
-vcs_folder = function_path + "/vcs"
+COMPONENTS_YAML = FUNCTION_PATH + "/esm_master/setups2models.yaml"
+CONFIG_YAML = FUNCTION_PATH + "/esm_master/esm_master.yaml"
+VCS_FOLDER = FUNCTION_PATH + "/vcs"
 
-overall_conf_file = esm_rcfile.rcfile
+OVERALL_CONF_FILE = esm_rcfile.rcfile
 
 ######################################################################################
 ############################## class "general_infos" #################################
@@ -32,7 +32,7 @@ overall_conf_file = esm_rcfile.rcfile
 class general_infos:
     def __init__(self):
 
-        self.config = esm_parser.yaml_file_to_dict(config_yaml)
+        self.config = esm_parser.yaml_file_to_dict(CONFIG_YAML)
         self.emc = self.read_and_update_conf_files()
         self.meta_todos, self.meta_command_order = self.get_meta_command()
         self.display_kinds = self.get_display_kinds()
@@ -43,7 +43,7 @@ class general_infos:
     def read_and_update_conf_files(self):
         complete = True
         emc = {}
-        for conffile in [overall_conf_file]:
+        for conffile in [OVERALL_CONF_FILE]:
             if os.path.isfile(conffile):
                 with open(conffile) as myfile:
                     for line in myfile:
@@ -66,7 +66,7 @@ class general_infos:
                         user_input = default
                     emc.update({basic_info.strip(): user_input.strip()})
         if not complete:
-            with open(overall_conf_file, "w") as new_conf_file:
+            with open(OVERALL_CONF_FILE, "w") as new_conf_file:
                 for oldentry in emc.keys():
                     new_conf_file.write(oldentry + "=" + emc[oldentry] + "\n")
         return emc
@@ -102,15 +102,15 @@ class general_infos:
 class version_control_infos:
     def __init__(self):
         self.config = {}
-        vcs_files = [f for f in os.listdir(vcs_folder)]
+        vcs_files = [f for f in os.listdir(VCS_FOLDER)]
         self.known_repos = []
         for vcs_file in vcs_files:
-            if os.path.isfile(vcs_folder + "/" + vcs_file):
+            if os.path.isfile(VCS_FOLDER + "/" + vcs_file):
                 repo_type = vcs_file.replace(".yaml", "")
                 self.config.update(
                     {
                         repo_type: esm_parser.yaml_file_to_dict(
-                            vcs_folder + "/" + vcs_file
+                            VCS_FOLDER + "/" + vcs_file
                         )
                     }
                 )
@@ -864,7 +864,7 @@ class task:
 
 class setup_and_model_infos:
     def __init__(self, vcs, general):
-        self.config = esm_parser.yaml_file_to_dict(components_yaml)
+        self.config = esm_parser.yaml_file_to_dict(COMPONENTS_YAML)
         self.model_kinds = list(self.config.keys())
         self.meta_todos = general.meta_todos
         self.meta_command_order = general.meta_command_order
