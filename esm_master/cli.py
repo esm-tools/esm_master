@@ -70,7 +70,7 @@ def main():
     if not target:
         target = ""
 
-    main_infos = general_infos()
+    main_infos = GeneralInfos()
     vcs = version_control_infos()
     setups2models = setup_and_model_infos(vcs, main_infos)
 
@@ -95,7 +95,7 @@ def main():
             "Have your shell source this file to allow tab completion of available targets"
         )
         print("This works for both bash and zsh")
-        sys.exit()
+        return 0
 
     setups2models.config = setups2models.reduce(target)
 
@@ -106,11 +106,12 @@ def main():
     complete_setup = SimulationSetup(user_config=user_config)
     complete_config = complete_setup.config
 
-    env = esm_environment.environment_infos("compiletime", complete_config)
+    #env = esm_environment.environment_infos("compiletime", complete_config)
 
-    setups2models.replace_last_vars(env)
+    # This will be a problem later with GEOMAR
+    #setups2models.replace_last_vars(env)
 
-    user_task = task(target, setups2models, vcs, main_infos)
+    user_task = Task(target, setups2models, vcs, main_infos, complete_config)
     if verbose > 0:
         user_task.output()
 
@@ -119,16 +120,15 @@ def main():
     if check:
         return 0
     user_task.validate()
-    env.write_dummy_script()
+    #env.write_dummy_script()
 
-    user_task.execute(env)
+    user_task.execute() #env)
     database = database_actions.database_entry(
         user_task.todo, user_task.package.raw_name, ESM_MASTER_DIR
     )
     database.connection.close()
 
     if not keep:
-        env.cleanup_dummy_script()
         user_task.cleanup_script()
 
     return 0

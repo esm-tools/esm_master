@@ -78,7 +78,7 @@ def combine_components_yaml():
 ######################################################################################
 
 
-class general_infos:
+class GeneralInfos:
     def __init__(self):
 
         self.config = esm_parser.yaml_file_to_dict(CONFIG_YAML)
@@ -96,6 +96,7 @@ class general_infos:
             if os.path.isfile(conffile):
                 with open(conffile) as myfile:
                     for line in myfile:
+                        # PG: Could be simpler: just line.split("=")
                         name, var = line.partition("=")[::2]
                         emc[name.strip()] = var.strip()
         if "basic_infos" in self.config.keys():
@@ -121,6 +122,16 @@ class general_infos:
         return emc
 
     def get_meta_command(self):
+        """
+        Gets ``meta_todos`` and ``meta_command_order``, which are a combination
+        of other tasks. e.g. "install" does get, conf, and comp.
+
+        Returns
+        -------
+        Tuple of List, Dict
+        The list contains all meta_todos, the dict contains the todo as the
+        key, and the steps as the value.
+        """
         meta_todos = []
         meta_command_order = {}
         for entry in self.config:
@@ -494,8 +505,9 @@ class software_package:
 ######################################################################################
 
 
-class task:
-    def __init__(self, raw, setup_info, vcs, general):
+class Task:
+    """What you can do with a software_package, e.g. comp-awicm-2.0"""
+    def __init__(self, raw, setup_info, vcs, general, complete_config):
         if raw == "default":
             raw = ""
         if raw == "drytestall":
@@ -504,7 +516,7 @@ class task:
                 for todo in package.targets:
                     try:
                         print(todo + "-" + package.raw_name)
-                        newtask = task(todo + "-" + package.raw_name, setup_info, vcs)
+                        newtask = Task(todo + "-" + package.raw_name, setup_info, vcs)
                         newtask.output_steps()
                     except:
                         print("Problem found with target " + newtask.raw_name)
@@ -532,10 +544,20 @@ class task:
                 self.todo, kind, model, version
             )
 
+        print("-"*80)
+        print(self.todo)
+        if kind == "components":
+            self.env = esm_environment.esm_environment.EnvironmentInfos(
+                    "compiletime",
+                    complete_config,
+                    model
+                    )
+        else:
+            self.env = None
         if not self.todo in setup_info.meta_todos:
             self.check_if_target(setup_info)
 
-        self.subtasks = self.get_subtasks(setup_info, vcs, general)
+        self.subtasks = self.get_subtasks(setup_info, vcs, general, complete_config)
         self.only_subtask = self.validate_only_subtask()
         self.ordered_tasks = self.order_subtasks(setup_info, vcs, general)
 
@@ -548,7 +570,7 @@ class task:
         if verbose > 1:
             self.output()
 
-    def get_subtasks(self, setup_info, vcs, general):
+    def get_subtasks(self, setup_info, vcs, general, complete_config):
         subtasks = []
         if self.todo in setup_info.meta_todos:
             todos = setup_info.meta_command_order[self.todo]
@@ -558,7 +580,7 @@ class task:
             for subpackage in self.package.subpackages:
                 if todo in subpackage.targets:
                     subtasks.append(
-                        task(
+                        Task(
                             (
                                 todo,
                                 subpackage.kind,
@@ -569,6 +591,7 @@ class task:
                             setup_info,
                             vcs,
                             general,
+                            complete_config,
                         )
                     )
         # if subtasks == [] and self.todo in setup_info.meta_todos:
@@ -576,7 +599,7 @@ class task:
             for todo in todos:
                 if todo in self.package.targets:
                     subtasks.append(
-                        task(
+                        Task(
                             (
                                 todo,
                                 self.package.kind,
@@ -587,6 +610,7 @@ class task:
                             setup_info,
                             vcs,
                             general,
+                            complete_config,
                         )
                     )
         return subtasks
@@ -701,7 +725,7 @@ class task:
             if task.todo == "comp":
                 if task.package.bin_names:
                     newdir = toplevel + "/" + task.package.bin_type
-                    if not newdir in dir_list:
+                    if newdir not in dir_list:
                         dir_list.append(newdir)
         return dir_list
 
@@ -716,7 +740,7 @@ class task:
         real_command_list = command_list.copy()
         for task in self.ordered_tasks:
             if task.todo in ["get"]:
-                if not task.package.command_list[task.todo] == None:
+                if task.package.command_list[task.todo] is not None:
                     for command in task.package.command_list[task.todo]:
                         command_list.append(command)
                         real_command_list.append(command)
@@ -727,20 +751,20 @@ class task:
                 real_command_list.append(change)
 
         for task in self.ordered_tasks:
-            if not task.todo in ["get"]:
+            if task.todo not in ["get"]:
                 if task.todo in ["conf", "comp"]:
                     # if self.package.kind in ["setups", "couplings"]:
-                    if not task.package.kind in ["setups", "couplings"]:
+                    if task.package.kind not in ["setups", "couplings"]:
                         if self.package.subpackages:
                             real_command_list.append(
                                 "cp ../" + task.raw_name + "_script.sh ."
                             )
                         real_command_list.append("./" + task.raw_name + "_script.sh")
                 else:
-                    if not task.package.command_list[task.todo] == None:
+                    if task.package.command_list[task.todo] is not None:
                         for command in task.package.command_list[task.todo]:
                             real_command_list.append(command)
-                if not task.package.command_list[task.todo] == None:
+                if task.package.command_list[task.todo] is not None:
                     for command in task.package.command_list[task.todo]:
                         command_list.append(command)
                 if task.todo == "comp":
@@ -802,6 +826,10 @@ class task:
         return real_command_list, command_list
 
     def cleanup_script(self):
+        try:
+            os.remove("./dummy_script.sh")
+        except OSError:
+            print("No dummy script to remove!")
         for task in self.ordered_tasks:
             if task.todo in ["conf", "comp"]:
                 try:
@@ -835,14 +863,16 @@ class task:
     def validate(self):
         self.check_requirements()
 
-    def execute(self, env):
+    def execute(self):
         for task in self.ordered_tasks:
             if task.todo in ["conf", "comp"]:
-                newfile = env.add_commands(
-                    task.package.command_list[task.todo], task.raw_name
-                )
-                if os.path.isfile(newfile):
-                    os.chmod(newfile, 0o755)
+                if task.package.kind == "components":
+                    task.env.write_dummy_script()
+                    newfile = task.env.add_commands(
+                        task.package.command_list[task.todo], task.raw_name
+                    )
+                    if os.path.isfile(newfile):
+                        os.chmod(newfile, 0o755)
         for command in self.command_list:
             if command.startswith("mkdir"):
                 # os.system(command)
@@ -850,7 +880,7 @@ class task:
             elif command.startswith("cp "):
                 # os.system(command)
                 subprocess.run(command.split(), check=True)
-            elif command.startswith("cd ") and not ";" in command:
+            elif command.startswith("cd ") and ";" not in command:
                 os.chdir(command.replace("cd ", ""))
             else:
                 # os.system(command)
@@ -862,12 +892,6 @@ class task:
                         check=True,
                         shell=(command.startswith("./") and command.endswith(".sh")),
                     )
-
-        # print ("Still here")
-        # try:
-        #    sys.exit(0)
-        # except:
-        #    pass
 
     def output(self):
         print()
