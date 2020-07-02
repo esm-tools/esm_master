@@ -544,8 +544,6 @@ class Task:
                 self.todo, kind, model, version
             )
 
-        print("-"*80)
-        print(self.todo)
         if kind == "components":
             self.env = esm_environment.esm_environment.EnvironmentInfos(
                     "compiletime",
