@@ -72,6 +72,16 @@ def main():
 
     main_infos = GeneralInfos()
     vcs = version_control_infos()
+
+    user_config = write_minimal_user_config()
+    from esm_runscripts.esm_sim_objects import SimulationSetup
+    complete_setup = SimulationSetup(user_config=user_config)
+    complete_config = complete_setup.config
+
+
+
+
+
     setups2models = setup_and_model_infos(vcs, main_infos)
 
     if parsed_args["list_all_targets"]:
@@ -97,14 +107,22 @@ def main():
         print("This works for both bash and zsh")
         return 0
 
+
+     = initialize_task (target)
+
+
+    # ACTUAL CODE
+
+
+
+
+
+
+
+
+
     setups2models.config = setups2models.reduce(target)
 
-    user_config = setups2models.write_minimal_user_config()
-
-    from esm_runscripts.esm_sim_objects import SimulationSetup
-
-    complete_setup = SimulationSetup(user_config=user_config)
-    complete_config = complete_setup.config
 
     #env = esm_environment.environment_infos("compiletime", complete_config)
 
