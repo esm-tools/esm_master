@@ -1,5 +1,8 @@
 import esm_rcfile
+import esm_parser
 import os
+
+from .cli import verbose
 
 ######################################################################################
 ##################################### globals ########################################
@@ -13,10 +16,41 @@ ESM_MASTER_DIR = os.getenv("PWD")
 COMPONENTS_DIR = FUNCTION_PATH + "/components/"
 SETUPS_DIR = FUNCTION_PATH + "/setups/"
 COUPLINGS_DIR = FUNCTION_PATH + "/couplings/"
-CONFIG_YAML = FUNCTION_PATH + "/esm_master/esm_master.yaml"
-VCS_FOLDER = FUNCTION_PATH + "/vcs/"
+CONFIG_YAML = FUNCTION_PATH + "/esm_software/esm_master/esm_master.yaml"
+VCS_FOLDER = FUNCTION_PATH + "/other_software/vcs/"
 
 OVERALL_CONF_FILE = esm_rcfile.rcfile
+
+
+######################################################################################
+##################################### tab completion #################################
+######################################################################################
+
+
+def tab_completion(parsed_args, setups2models):
+    if parsed_args["list_all_targets"]:
+        all_commands = []
+        for package in setups2models.all_packages:
+            for command in package.command_list:
+                all_commands.append(command + "-" + package.raw_name)
+        print("\n".join(all_commands))
+        sys.exit()
+
+    if parsed_args["generate_tab_complete"]:
+        with open("esm_master_tabcomplete.bash", "w") as tab_comp:
+            tab_comp.write("#/usr/bin/env bash\n")
+            tab_comp.write("_esm_master_completions() {\n")
+            tab_comp.write(
+                '\tCOMPREPLY=($(compgen -W "$(esm_master --list_all_targets)" "${COMP_WORDS[1]}"))'
+            )
+            tab_comp.write("\n}\n\ncomplete -F _esm_master_completions esm_master\n")
+        print("Wrote file: esm_master_tabcomplete.bash")
+        print(
+            "Have your shell source this file to allow tab completion of available targets"
+        )
+        print("This works for both bash and zsh")
+        return 0
+
 
 
 ######################################################################################
@@ -69,6 +103,7 @@ class GeneralInfos:
         self.emc = self.read_and_update_conf_files()
         self.meta_todos, self.meta_command_order = self.get_meta_command()
         self.display_kinds = self.get_display_kinds()
+
 
         if verbose > 1:
             self.output()

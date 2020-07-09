@@ -3,15 +3,11 @@ import argparse
 import sys
 
 
-# import logging
-# logging.basicConfig(level=logging.DEBUG)
 check = False
 verbose = 0
-
-from .esm_master import *
+# import logging
+# logging.basicConfig(level=logging.DEBUG)
 from . import __version__
-from . import database_actions
-
 
 def main():
 
@@ -53,9 +49,10 @@ def main():
     parser.add_argument("--list_all_targets", action="store_true")
     parsed_args = vars(parser.parse_args())
 
+    target = ""
     check = False
     verbose = 0
-    target = ""
+
 
     if parsed_args:
         if "target" in parsed_args:
@@ -70,86 +67,8 @@ def main():
     if not target:
         target = ""
 
-    main_infos = GeneralInfos()
-    vcs = version_control_infos()
-
-    user_config = write_minimal_user_config()
-    from esm_runscripts.esm_sim_objects import SimulationSetup
-    complete_setup = SimulationSetup(user_config=user_config)
-    complete_config = complete_setup.config
-
-
-
-
-
-    setups2models = setup_and_model_infos(vcs, main_infos)
-
-    if parsed_args["list_all_targets"]:
-        all_commands = []
-        for package in setups2models.all_packages:
-            for command in package.command_list:
-                all_commands.append(command + "-" + package.raw_name)
-        print("\n".join(all_commands))
-        sys.exit()
-
-    if parsed_args["generate_tab_complete"]:
-        with open("esm_master_tabcomplete.bash", "w") as tab_comp:
-            tab_comp.write("#/usr/bin/env bash\n")
-            tab_comp.write("_esm_master_completions() {\n")
-            tab_comp.write(
-                '\tCOMPREPLY=($(compgen -W "$(esm_master --list_all_targets)" "${COMP_WORDS[1]}"))'
-            )
-            tab_comp.write("\n}\n\ncomplete -F _esm_master_completions esm_master\n")
-        print("Wrote file: esm_master_tabcomplete.bash")
-        print(
-            "Have your shell source this file to allow tab completion of available targets"
-        )
-        print("This works for both bash and zsh")
-        return 0
-
-
-     = initialize_task (target)
-
-
-    # ACTUAL CODE
-
-
-
-
-
-
-
-
-
-    setups2models.config = setups2models.reduce(target)
-
-
-    #env = esm_environment.environment_infos("compiletime", complete_config)
-
-    # This will be a problem later with GEOMAR
-    #setups2models.replace_last_vars(env)
-
-    user_task = Task(target, setups2models, vcs, main_infos, complete_config)
-    if verbose > 0:
-        user_task.output()
-
-    user_task.output_steps()
-
-    if check:
-        return 0
-    user_task.validate()
-    #env.write_dummy_script()
-
-    user_task.execute() #env)
-    database = database_actions.database_entry(
-        user_task.todo, user_task.package.raw_name, ESM_MASTER_DIR
-    )
-    database.connection.close()
-
-    if not keep:
-        user_task.cleanup_script()
-
-    return 0
+    from .esm_master import main_flow
+    main_flow(parsed_args, target)
 
 
 if __name__ == "__main__":

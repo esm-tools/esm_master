@@ -1,3 +1,16 @@
+import os, sys
+import copy
+
+from .general_stuff import (
+        COMPONENTS_DIR,
+        COUPLINGS_DIR,
+        SETUPS_DIR
+        )
+
+from .cli import verbose
+
+import esm_parser
+
 ######################################################################################
 ############################## Combine all YAMLS #####################################
 ######################################################################################
@@ -25,9 +38,13 @@ def combine_components_yaml():
             "comp_command",
             "conf_command",
             "clean_command",
+            "components",
+            "coupling_changes",
+            "requires",
+            "couplings"
             ]
 
-    categories = ["components", "couplings", "setups"]
+    categories = ["components" , "couplings", "setups"]
 
     relevant_dirs={ 
             "components": COMPONENTS_DIR,
@@ -43,38 +60,97 @@ def combine_components_yaml():
         cat_dir = relevant_dirs[cat]
 
         for package in os.listdir(cat_dir):
-            components_dict[cat][package] = {}
-            package_dir = relevant_dir + "/" + cat + "/"
+            print (package)
 
-            default_file = package_dir + component + ".yaml"
+            package_dir = cat_dir + package + "/"
+
+            default_file = package_dir + package + ".yaml"
 
             versioned_files = [
                     package_dir + i 
                     for i in os.listdir(package_dir) 
-                    if i.startswith("component" + "-")
+                    if i.startswith(package + "-")
+                    if i.endswith(".yaml")
                     ]
 
             comp_config = esm_parser.yaml_file_to_dict(default_file)
-            default_version = comp_config["version"]
+            if verbose > 1:
+                print (f'...reading file {default_file}')
+            if get_correct_entry(comp_config, {}, "version") == {}:
+                if verbose > 1:
+                    print(f'Var "version" is missing in yaml file for package {package}. ')
+                    print('Trying to set to "*"...')
+                comp_config["version"] = "*"
 
             package_conf = get_relevant_info(relevant_entries, comp_config)
 
             for conf_file in versioned_files:
+                if verbose > 1:
+                    print (f'...reading file {conf_file}')
                 add_config = esm_parser.yaml_file_to_dict(conf_file)
+                if get_correct_entry(add_config, {}, "version") == {}:
+                    if verbose > 1:
+                        print(f'Var "version" is missing in yaml file for package {package}. ')
+                        print('Trying to set to "*"...')
+                    add_config["version"] = "*"
                 package_conf = get_relevant_info(relevant_entries, add_config, package_conf)
 
-            components_dict[cat][package] = package_conf
+
+            package_conf = remove_globbing_char(package_conf)
+            if not package_conf == {}:
+                components_dict[cat][package] = package_conf
             
-    return components_dict[cat][package]
+
+    esm_parser.pprint_config(components_dict)
+    return components_dict
 
 
+def remove_globbing_char(conf):
+    if "available_versions" in conf and conf["available_versions"] == ["*"]:
+        if "choose_version" in conf and list(conf["choose_version"].keys()) == ["*"]:
+            if not conf["choose_version"]["*"] == {}:
+                conf.update(conf["choose_version"]["*"])
+            del conf["choose_version"]
+            del conf["available_versions"]
+
+    if "choose_version" in conf and "*" in conf["choose_version"]:
+        if "available_versions" in conf:
+            for entry in conf["available_versions"]:
+                if not entry in conf["choose_version"]:
+                    conf["choose_version"].update({entry: conf["choose_version"]["*"]})
+            del conf["choose_version"]["*"]
+
+    if "available_versions" in conf:
+        if "choose_version" in conf:
+            for entry in conf["choose_version"]:
+                if not entry in conf["available_versions"]:
+                    conf["available_versions"].append(entry)
+        if "*" in conf["available_versions"]:
+            conf["available_versions"].remove("*")
+
+    if "choose_version" in conf:
+        for entry in list(conf["choose_version"].keys()):
+            if conf["choose_version"][entry] == {}:
+                del conf["choose_version"][entry]
+                if "available_versions" in conf:
+                    if entry in conf["available_versions"]:
+                        conf["available_versions"].remove(entry)
+        if conf["choose_version"] == {}:
+            del conf["choose_version"]
+    
+    if "available_versions" in conf and conf["available_versions"] == []:
+        del conf["available_versions"]
+
+
+
+    return conf
 
 
 
 
 def get_correct_entry(in_config, out_config, entry, default = None):
-        compile_tag = "compile_info"
-        
+        compile_tag = "compile_infos"
+       
         if compile_tag in in_config and entry in in_config[compile_tag]:
             out_config[entry] = in_config[compile_tag][entry]
         elif "general" in in_config and compile_tag in in_config["general"] and entry in in_config["general"][compile_tag]:
@@ -96,24 +172,27 @@ def get_relevant_info(relevant_entries, raw_config, merge_into_this_config=None)
         relevant_info = {}
         for entry in relevant_entries:
             relevant_info = get_correct_entry(raw_config, relevant_info, entry)
-    
-        comp_config = get_correct_entry(raw_config, {}, "available_versions", raw_config["version"])
-        comp_config = get_correct_entry(raw_config, comp_config, "choose_version", {"*": {}})
+        
+        default_version = get_correct_entry(raw_config, {}, "version")["version"]
 
-        if raw_config["version"] not in comp_config["choose_version"]:
-            comp_config["choose_version"][raw_config["version"]] = {}
+        comp_config = get_correct_entry(raw_config, {}, "available_versions", [default_version])
+        comp_config = get_correct_entry(raw_config, comp_config, "choose_version", {default_version: {}})
 
-        if "*" not in comp_config["choose_version"]:
-            comp_config["choose_version"]["*"] = {}
+        if default_version not in comp_config["choose_version"]:
+            comp_config["choose_version"][default_version] = {}
 
         for version in comp_config["choose_version"]:
             for entry, value in relevant_info.items():
                 if not entry in comp_config["choose_version"][version]:
-                    comp_config["choose_version"][version] = value
+                    comp_config["choose_version"][version][entry] = value
+            for entry in  list(comp_config["choose_version"][version].keys()):
+                if entry not in relevant_entries:
+                    del comp_config["choose_version"][version][entry]
 
         if merge_into_this_config:
             for version in comp_config["available_versions"]:
-                merge_into_this_config["available_versions"].append(version) if version not in merge_into_this_config["available_versions"]
+                if version not in merge_into_this_config["available_versions"]:
+                    merge_into_this_config["available_versions"].append(version) 
 
             for version in comp_config["choose_version"]:
                 if version in merge_into_this_config["choose_version"]:
