@@ -5,7 +5,8 @@ import asyncio
 from .general_stuff import (
         COMPONENTS_DIR,
         COUPLINGS_DIR,
-        SETUPS_DIR
+        SETUPS_DIR,
+        ESM_SOFTWARE_DIR
         )
 
 from .cli import verbose
@@ -64,6 +65,9 @@ def combine_components_yaml():
 
 
         asyncio.get_event_loop().run_until_complete(get_all_package_info(os.listdir(cat_dir), cat, cat_dir, components_dict, relevant_entries))
+
+    default_infos = esm_parser.yaml_file_to_dict(ESM_SOFTWARE_DIR + "/esm_master/defaults.yaml")
+    components_dict["defaults"] = default_infos
 
     esm_parser.pprint_config(components_dict)
     return components_dict
