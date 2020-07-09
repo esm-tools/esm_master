@@ -1,5 +1,6 @@
 import os, sys
 import copy
+import asyncio
 
 from .general_stuff import (
         COMPONENTS_DIR,
@@ -59,50 +60,70 @@ def combine_components_yaml():
         components_dict[cat] = {}
         cat_dir = relevant_dirs[cat]
 
-        for package in os.listdir(cat_dir):
-            print (package)
-
-            package_dir = cat_dir + package + "/"
-
-            default_file = package_dir + package + ".yaml"
-
-            versioned_files = [
-                    package_dir + i 
-                    for i in os.listdir(package_dir) 
-                    if i.startswith(package + "-")
-                    if i.endswith(".yaml")
-                    ]
-
-            comp_config = esm_parser.yaml_file_to_dict(default_file)
-            if verbose > 1:
-                print (f'...reading file {default_file}')
-            if get_correct_entry(comp_config, {}, "version") == {}:
-                if verbose > 1:
-                    print(f'Var "version" is missing in yaml file for package {package}. ')
-                    print('Trying to set to "*"...')
-                comp_config["version"] = "*"
-
-            package_conf = get_relevant_info(relevant_entries, comp_config)
-
-            for conf_file in versioned_files:
-                if verbose > 1:
-                    print (f'...reading file {conf_file}')
-                add_config = esm_parser.yaml_file_to_dict(conf_file)
-                if get_correct_entry(add_config, {}, "version") == {}:
-                    if verbose > 1:
-                        print(f'Var "version" is missing in yaml file for package {package}. ')
-                        print('Trying to set to "*"...')
-                    add_config["version"] = "*"
-                package_conf = get_relevant_info(relevant_entries, add_config, package_conf)
+        #for package in os.listdir(cat_dir):
 
 
-            package_conf = remove_globbing_char(package_conf)
-            if not package_conf == {}:
-                components_dict[cat][package] = package_conf
-            
+        asyncio.get_event_loop().run_until_complete(get_all_package_info(os.listdir(cat_dir), cat, cat_dir, components_dict, relevant_entries))
 
     esm_parser.pprint_config(components_dict)
     return components_dict
+
+
+
+
+                
+                
+async def get_all_package_info(packages, cat, cat_dir, components_dict, relevant_entries):
+    tasks = []
+    for package in packages:
+        task = asyncio.ensure_future(get_one_package_info(package, cat, cat_dir, components_dict, relevant_entries))
+        tasks.append(task)
+    await asyncio.gather(*tasks, return_exceptions = True)
+
+
+
+
+async def get_one_package_info(package, cat, cat_dir, components_dict, relevant_entries):
+
+    package_dir = cat_dir + package + "/"
+
+    default_file = package_dir + package + ".yaml"
+
+    versioned_files = [
+            package_dir + i 
+            for i in os.listdir(package_dir) 
+            if i.startswith(package + "-")
+            if i.endswith(".yaml")
+            ]
+
+    comp_config = esm_parser.yaml_file_to_dict(default_file)
+    if verbose > 1:
+        print (f'...reading file {default_file}')
+    if get_correct_entry(comp_config, {}, "version") == {}:
+        if verbose > 1:
+            print(f'Var "version" is missing in yaml file for package {package}. ')
+            print('Trying to set to "*"...')
+        comp_config["version"] = "*"
+
+    package_conf = get_relevant_info(relevant_entries, comp_config)
+
+    for conf_file in versioned_files:
+        if verbose > 1:
+            print (f'...reading file {conf_file}')
+        add_config = esm_parser.yaml_file_to_dict(conf_file)
+        if get_correct_entry(add_config, {}, "version") == {}:
+            if verbose > 1:
+                print(f'Var "version" is missing in yaml file for package {package}. ')
+                print('Trying to set to "*"...')
+            add_config["version"] = "*"
+        package_conf = get_relevant_info(relevant_entries, add_config, package_conf)
+
+
+    package_conf = remove_globbing_char(package_conf)
+    if not package_conf == {}:
+        components_dict[cat][package] = package_conf
+            
+
 
 
 def remove_globbing_char(conf):
