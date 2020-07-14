@@ -16,12 +16,13 @@ ESM_MASTER_DIR = os.getenv("PWD")
 COMPONENTS_DIR = FUNCTION_PATH + "/components/"
 SETUPS_DIR = FUNCTION_PATH + "/setups/"
 COUPLINGS_DIR = FUNCTION_PATH + "/couplings/"
-ESM_SOFTWARE_DIR = FUNCTION_PATH + "/esm_software"
+ESM_SOFTWARE_DIR = FUNCTION_PATH + "/esm_software/"
 CONFIG_YAML = FUNCTION_PATH + "/esm_software/esm_master/esm_master.yaml"
 VCS_FOLDER = FUNCTION_PATH + "/other_software/vcs/"
 
 OVERALL_CONF_FILE = esm_rcfile.rcfile
 
+ESM_MASTER_PICKLE = ESM_SOFTWARE_DIR + "/esm_master/esm_master.pkl"
 
 ######################################################################################
 ##################################### tab completion #################################

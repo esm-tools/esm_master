@@ -49,6 +49,9 @@ def main():
     parser.add_argument("--list_all_targets", action="store_true")
     parsed_args = vars(parser.parse_args())
 
+    global check
+    global verbose
+
     target = ""
     check = False
     verbose = 0

@@ -22,8 +22,8 @@ def main_flow(parsed_args, target):
 
     main_infos = GeneralInfos()
     vcs = version_control_infos()
-    
-    setups2models = setup_and_model_infos(vcs, main_infos)
+   
+    setups2models = setup_and_model_infos(vcs, main_infos, parsed_args)
     setups2models.config = setups2models.reduce(target)
 
     user_config = write_minimal_user_config()

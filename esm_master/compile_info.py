@@ -1,21 +1,38 @@
-import os, sys
+import os, sys, re
 import copy
 import asyncio
+
+import pickle
 
 from .general_stuff import (
         COMPONENTS_DIR,
         COUPLINGS_DIR,
         SETUPS_DIR,
-        ESM_SOFTWARE_DIR
+        ESM_SOFTWARE_DIR,
+        ESM_MASTER_PICKLE,
         )
 
 from .cli import verbose
 
 import esm_parser
+from .software_package import *
 
 ######################################################################################
 ############################## Combine all YAMLS #####################################
 ######################################################################################
+
+
+def save_pickle(obj, path ):
+    with open(path, 'wb') as f:
+        pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
+
+
+def load_pickle(path):
+    if os.path.isfile(path):
+        with open(path, 'rb') as f:
+            return pickle.load(f)
+    else:
+        return None
 
 
 def combine_components_yaml():
@@ -34,7 +51,7 @@ def combine_components_yaml():
     """
 
     relevant_entries = [
-            "git_repository",
+            "git-repository",
             "branch",
             "tag",
             "comp_command",
@@ -46,12 +63,13 @@ def combine_components_yaml():
             "couplings"
             ]
 
-    categories = ["components" , "couplings", "setups"]
+    categories = ["components" , "couplings", "setups", "esm_software"]
 
     relevant_dirs={ 
             "components": COMPONENTS_DIR,
             "couplings": COUPLINGS_DIR,
             "setups": SETUPS_DIR,
+            "esm_software": ESM_SOFTWARE_DIR
             }
 
     components_dict = {}
@@ -69,7 +87,7 @@ def combine_components_yaml():
     default_infos = esm_parser.yaml_file_to_dict(ESM_SOFTWARE_DIR + "/esm_master/defaults.yaml")
     components_dict["defaults"] = default_infos
 
-    esm_parser.pprint_config(components_dict)
+    #esm_parser.pprint_config(components_dict)
     return components_dict
 
 
@@ -243,8 +261,19 @@ def get_relevant_info(relevant_entries, raw_config, merge_into_this_config=None)
 
 
 class setup_and_model_infos:
-    def __init__(self, vcs, general):
-        self.config = combine_components_yaml()
+    def __init__(self, vcs, general, parsed_args):
+
+        if not os.path.isfile(ESM_MASTER_PICKLE):
+            self.config = combine_components_yaml()
+            save_pickle(self.config, ESM_MASTER_PICKLE)
+
+        elif "list_all_packages" in parsed_args:
+            self.config = load_pickle(ESM_MASTER_PICKLE)
+
+        else:
+            self.config = combine_components_yaml()
+            save_pickle(self.config, ESM_MASTER_PICKLE)
+
         self.model_kinds = list(self.config.keys())
         self.meta_todos = general.meta_todos
         self.meta_command_order = general.meta_command_order
@@ -270,6 +299,7 @@ class setup_and_model_infos:
                             self.model_todos.append(todo)
 
         self.known_todos = self.model_todos + vcs.known_todos + general.meta_todos
+
         self.all_packages = self.list_all_packages(vcs, general)
         self.update_packages(vcs, general)
 
@@ -531,7 +561,7 @@ class setup_and_model_infos:
             )
             print()
             print(
-                "Obtain from:         https://gitlab.dkrz.de/esm-tools/esm-master.git"
+                "Obtain from:         https://github.com/esm-tools/esm_master.git"
             )
             print()
             self.print_nicely(display_info)
