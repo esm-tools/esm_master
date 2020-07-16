@@ -1,3 +1,11 @@
+import os, sys, subprocess
+
+from .software_package import software_package
+
+from .cli import verbose
+
+import esm_environment 
+
 ######################################################################################
 ################################# class "task" #######################################
 ######################################################################################
@@ -90,8 +98,8 @@ class Task:
                             complete_config,
                         )
                     )
-        # if subtasks == [] and self.todo in setup_info.meta_todos:
-        if self.todo in setup_info.meta_todos:
+        if subtasks == [] and self.todo in setup_info.meta_todos:
+        #if self.todo in setup_info.meta_todos:
             for todo in todos:
                 if todo in self.package.targets:
                     subtasks.append(

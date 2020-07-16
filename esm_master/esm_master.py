@@ -3,6 +3,7 @@
 
 import sys
 
+from . import database_actions
 from .cli import verbose, check
 
 from .general_stuff import (
@@ -10,12 +11,12 @@ from .general_stuff import (
         version_control_infos, 
         tab_completion, 
         write_minimal_user_config,
+        ESM_MASTER_DIR
         )
 
 from .compile_info import setup_and_model_infos
 
-
-
+from .task import Task
 
 
 def main_flow(parsed_args, target):
@@ -24,12 +25,14 @@ def main_flow(parsed_args, target):
     vcs = version_control_infos()
    
     setups2models = setup_and_model_infos(vcs, main_infos, parsed_args)
-    setups2models.config = setups2models.reduce(target)
-
-    user_config = write_minimal_user_config()
-    from esm_runscripts.esm_sim_objects import SimulationSetup
-
     tab_completion(parsed_args, setups2models)
+    setups2models.config = setups2models.reduce(target)
+    
+    user_config = write_minimal_user_config(setups2models.config)
+
+    from esm_runscripts.esm_sim_objects import SimulationSetup
+    complete_setup = SimulationSetup(user_config=user_config)
+    complete_config = complete_setup.config
 
     # This will be a problem later with GEOMAR
     #setups2models.replace_last_vars(env)
@@ -43,15 +46,15 @@ def main_flow(parsed_args, target):
     if check:
         return 0
     user_task.validate()
-    #env.write_dummy_script()
 
     user_task.execute() #env)
+
     database = database_actions.database_entry(
         user_task.todo, user_task.package.raw_name, ESM_MASTER_DIR
     )
     database.connection.close()
 
-    if not keep:
+    if not parsed_args["keep"]:
         user_task.cleanup_script()
 
     return 0

@@ -8,8 +8,10 @@ from .general_stuff import (
         COMPONENTS_DIR,
         COUPLINGS_DIR,
         SETUPS_DIR,
+        DEFAULTS_DIR,
         ESM_SOFTWARE_DIR,
         ESM_MASTER_PICKLE,
+        ESM_MASTER_DIR
         )
 
 from .cli import verbose
@@ -60,7 +62,10 @@ def combine_components_yaml():
             "components",
             "coupling_changes",
             "requires",
-            "couplings"
+            "couplings",
+            "install_bins",
+            "install_libs",
+            "destination"
             ]
 
     categories = ["components" , "couplings", "setups", "esm_software"]
@@ -84,7 +89,13 @@ def combine_components_yaml():
 
         asyncio.get_event_loop().run_until_complete(get_all_package_info(os.listdir(cat_dir), cat, cat_dir, components_dict, relevant_entries))
 
-    default_infos = esm_parser.yaml_file_to_dict(ESM_SOFTWARE_DIR + "/esm_master/defaults.yaml")
+    default_infos = {}
+    for i in os.listdir(DEFAULTS_DIR):
+        if verbose > 1:
+            print(f"Reading file {DEFAULTS_DIR}/{i}")
+        file_contents = esm_parser.yaml_file_to_dict(DEFAULTS_DIR + "/" + i)
+        default_infos.update(file_contents)
+
     components_dict["defaults"] = default_infos
 
     #esm_parser.pprint_config(components_dict)

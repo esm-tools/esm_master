@@ -16,6 +16,7 @@ ESM_MASTER_DIR = os.getenv("PWD")
 COMPONENTS_DIR = FUNCTION_PATH + "/components/"
 SETUPS_DIR = FUNCTION_PATH + "/setups/"
 COUPLINGS_DIR = FUNCTION_PATH + "/couplings/"
+DEFAULTS_DIR = FUNCTION_PATH + "/defaults/"
 ESM_SOFTWARE_DIR = FUNCTION_PATH + "/esm_software/"
 CONFIG_YAML = FUNCTION_PATH + "/esm_software/esm_master/esm_master.yaml"
 VCS_FOLDER = FUNCTION_PATH + "/other_software/vcs/"
@@ -59,7 +60,7 @@ def tab_completion(parsed_args, setups2models):
 ############################## Write a tiny user script ##############################
 ######################################################################################
 
-def write_minimal_user_config(model, version, model_dir):
+def write_minimal_user_config(config):
     """
 
     In order to generate a SimulationSetup using esm_parser, we need a small and
@@ -70,6 +71,25 @@ def write_minimal_user_config(model, version, model_dir):
 
     """
     user_config = {}
+
+    for model in config["components"]:
+            version = config["components"][model]["version"]
+            model_dir = config["components"][model]["model_dir"]
+            user_config.update(
+                {model: {"model": model, "version": version, "model_dir": model_dir}}
+            )
+
+    if "setups" in config:
+            coupled = "true"
+            setup = list(config["setups"])[0]
+            version = config["setups"][setup]["version"]
+            model_dir = config["setups"][setup]["model_dir"]
+
+    else:
+            coupled = "false"
+            setup = list(config["components"])[0]
+            version = config["components"][setup]["version"]
+
 
     user_config.update(
         {
