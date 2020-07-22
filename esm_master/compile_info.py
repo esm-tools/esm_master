@@ -70,7 +70,7 @@ def combine_components_yaml():
 
     categories = ["components" , "couplings", "setups", "esm_software"]
 
-    relevant_dirs={ 
+    relevant_dirs={
             "components": COMPONENTS_DIR,
             "couplings": COUPLINGS_DIR,
             "setups": SETUPS_DIR,
@@ -104,8 +104,8 @@ def combine_components_yaml():
 
 
 
-                
-                
+
+
 async def get_all_package_info(packages, cat, cat_dir, components_dict, relevant_entries):
     tasks = []
     for package in packages:
@@ -123,8 +123,8 @@ async def get_one_package_info(package, cat, cat_dir, components_dict, relevant_
     default_file = package_dir + package + ".yaml"
 
     versioned_files = [
-            package_dir + i 
-            for i in os.listdir(package_dir) 
+            package_dir + i
+            for i in os.listdir(package_dir)
             if i.startswith(package + "-")
             if i.endswith(".yaml")
             ]
@@ -155,7 +155,7 @@ async def get_one_package_info(package, cat, cat_dir, components_dict, relevant_
     package_conf = remove_globbing_char(package_conf)
     if not package_conf == {}:
         components_dict[cat][package] = package_conf
-            
+
 
 
 
@@ -191,7 +191,7 @@ def remove_globbing_char(conf):
                         conf["available_versions"].remove(entry)
         if conf["choose_version"] == {}:
             del conf["choose_version"]
-    
+
     if "available_versions" in conf and conf["available_versions"] == []:
         del conf["available_versions"]
 
@@ -204,7 +204,7 @@ def remove_globbing_char(conf):
 
 def get_correct_entry(in_config, out_config, entry, default = None):
         compile_tag = "compile_infos"
-       
+
         if compile_tag in in_config and entry in in_config[compile_tag]:
             out_config[entry] = in_config[compile_tag][entry]
         elif "general" in in_config and compile_tag in in_config["general"] and entry in in_config["general"][compile_tag]:
@@ -226,7 +226,7 @@ def get_relevant_info(relevant_entries, raw_config, merge_into_this_config=None)
         relevant_info = {}
         for entry in relevant_entries:
             relevant_info = get_correct_entry(raw_config, relevant_info, entry)
-        
+
         default_version = get_correct_entry(raw_config, {}, "version")["version"]
 
         comp_config = get_correct_entry(raw_config, {}, "available_versions", [default_version])
@@ -246,7 +246,7 @@ def get_relevant_info(relevant_entries, raw_config, merge_into_this_config=None)
         if merge_into_this_config:
             for version in comp_config["available_versions"]:
                 if version not in merge_into_this_config["available_versions"]:
-                    merge_into_this_config["available_versions"].append(version) 
+                    merge_into_this_config["available_versions"].append(version)
 
             for version in comp_config["choose_version"]:
                 if version in merge_into_this_config["choose_version"]:

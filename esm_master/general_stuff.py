@@ -1,6 +1,7 @@
 import esm_rcfile
 import esm_parser
 import os
+import sys
 
 from .cli import verbose
 
@@ -107,7 +108,7 @@ def write_minimal_user_config(config):
             }
         }
     )
-    
+
     return user_config
 
 
