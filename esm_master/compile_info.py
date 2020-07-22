@@ -99,6 +99,7 @@ def combine_components_yaml():
     components_dict["defaults"] = default_infos
 
     #esm_parser.pprint_config(components_dict)
+    #sys.exit(0)
     return components_dict
 
 
@@ -294,8 +295,8 @@ class setup_and_model_infos:
         for kind in self.model_kinds:
             for model in self.config[kind].keys():
                 version = None
-                if "choose_versions" in self.config[kind][model]:
-                    for version in self.config[kind][model]["choose_versions"]:
+                if "choose_version" in self.config[kind][model]:
+                    for version in self.config[kind][model]["choose_version"]:
                         for entry in self.config[kind][model]["choose_version"][
                             version
                         ]:
