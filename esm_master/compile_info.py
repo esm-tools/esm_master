@@ -223,12 +223,32 @@ def get_correct_entry(in_config, out_config, entry, default = None):
 
 
 def get_relevant_info(relevant_entries, raw_config, merge_into_this_config=None):
+        """
+        Gets relevant information from the raw configuration and update the given
+        configuration dictionary ``merge_into_this_config``.
+
+        Parameters
+        ----------
+        relevant_entries : list
+            A list of relevant entries from which information needs to be extracted.
+        raw_config : dict
+            A dictionary containing the raw information read from the `yaml` file.
+        merge_into_this_config : dict
+            A dictionary in which the relevant information will be added.
+
+        Returns
+        -------
+        merge_into_this_config : dict
+            A dictionary given as input, then updated with the relevant information.
+        """
 
         relevant_info = {}
         for entry in relevant_entries:
             relevant_info = get_correct_entry(raw_config, relevant_info, entry)
 
+        # Load default version from the raw configuration and turn it into a string
         default_version = get_correct_entry(raw_config, {}, "version")["version"]
+        default_version = str(default_version)
 
         comp_config = get_correct_entry(raw_config, {}, "available_versions", [default_version])
         comp_config = get_correct_entry(raw_config, comp_config, "choose_version", {default_version: {}})
