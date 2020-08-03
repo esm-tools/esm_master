@@ -28,6 +28,26 @@ def main():
         type=str,
         help="name of the target (leave empty for full list of targets)",
     )
+
+# kh 15.07.20
+    parser.add_argument(
+        "--modify-config",
+        "-m", 
+        dest="modify",
+        help="[m]odify configuration", 
+        default="", # kh 15.07.20 "usermods.yaml"
+    )
+
+# kh 21.07.20
+    parser.add_argument(
+        "--ignore-errors",
+        "-i",
+        dest="ignore",
+        help="Ignore errors",
+        default=False,
+        action="store_true",
+    )
+
     parser.add_argument(
         "--check",
         "-c",
@@ -57,9 +77,24 @@ def main():
     verbose = 0
     target = ""
 
+# kh 15.07.20a
+    modify_config_file = "" 
+
+# kh 21.07.20
+    ignore_errors = False
+
     if parsed_args:
         if "target" in parsed_args:
             target = parsed_args["target"]
+
+# kh 15.07.20
+        if "modify" in parsed_args: 
+            modify_config_file = parsed_args["modify"]
+
+# kh 21.07.20
+        if "ignore" in parsed_args:
+            ignore_errors  = parsed_args["ignore"]
+
         if "check" in parsed_args:
             check = parsed_args["check"]
         if "verbose" in parsed_args:
@@ -69,6 +104,12 @@ def main():
 
     if not target:
         target = ""
+
+# kh 15.07.20
+    if modify_config_file:
+        modify_config = esm_parser.yaml_file_to_dict(modify_config_file)
+    else:
+        modify_config = {}
 
     main_infos = general_infos()
     vcs = version_control_infos()
@@ -103,6 +144,10 @@ def main():
 
     from esm_runscripts.esm_sim_objects import SimulationSetup
 
+
+# kh 15.07.20 prepare passing of modify_config
+    user_config["modify_config"] = modify_config 
+
     complete_setup = SimulationSetup(user_config=user_config)
     complete_config = complete_setup.config
 
@@ -121,7 +166,7 @@ def main():
     user_task.validate()
     env.write_dummy_script()
 
-    user_task.execute(env)
+    user_task.execute(env, ignore_errors)
     database = database_actions.database_entry(
         user_task.todo, user_task.package.raw_name, ESM_MASTER_DIR
     )
