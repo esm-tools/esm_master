@@ -835,7 +835,8 @@ class task:
     def validate(self):
         self.check_requirements()
 
-    def execute(self, env):
+# kh 21.07.20t ignore errors on demand (via --ignore-errors)
+    def execute(self, env, ignore_errors=False):
         for task in self.ordered_tasks:
             if task.todo in ["conf", "comp"]:
                 newfile = env.add_commands(
@@ -846,10 +847,12 @@ class task:
         for command in self.command_list:
             if command.startswith("mkdir"):
                 # os.system(command)
-                subprocess.run(command.split(), check=True)
+                subprocess.run(command.split(), check=not ignore_errors)
+
             elif command.startswith("cp "):
                 # os.system(command)
-                subprocess.run(command.split(), check=True)
+                subprocess.run(command.split(), check=not ignore_errors)
+
             elif command.startswith("cd ") and not ";" in command:
                 os.chdir(command.replace("cd ", ""))
             else:
@@ -857,9 +860,10 @@ class task:
                 for command in command.split(";"):
                     if "sed" in command:
                         command = command.replace("'", "")
+
                     subprocess.run(
                         command.split(),
-                        check=True,
+                        check=not ignore_errors,
                         shell=(command.startswith("./") and command.endswith(".sh")),
                     )
 
