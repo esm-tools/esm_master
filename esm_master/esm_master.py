@@ -835,7 +835,7 @@ class task:
     def validate(self):
         self.check_requirements()
 
-# kh 21.07.20t ignore errors on demand (via --ignore-errors)
+# kh 21.07.20 ignore errors on demand (via --ignore-errors)
     def execute(self, env, ignore_errors=False):
         for task in self.ordered_tasks:
             if task.todo in ["conf", "comp"]:
