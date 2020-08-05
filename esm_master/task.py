@@ -4,7 +4,7 @@ from .software_package import software_package
 
 from .cli import verbose
 
-import esm_environment 
+import esm_environment
 
 ######################################################################################
 ################################# class "task" #######################################
@@ -308,7 +308,7 @@ class Task:
                     if task.package.bin_names:
                         for binfile in task.package.bin_names:
                             command_list.append(
-                                "rm "
+                                "rm -f "
                                 + toplevel
                                 + "/"
                                 + task.package.bin_type
@@ -316,7 +316,7 @@ class Task:
                                 + binfile.split("/", -1)[-1]
                             )
                             real_command_list.append(
-                                "rm "
+                                "rm -f "
                                 + toplevel
                                 + "/"
                                 + task.package.bin_type
