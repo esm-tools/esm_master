@@ -283,7 +283,12 @@ class Task:
                             # PG: Only copy if source and dest aren't the same!
                             # (Prevents cp: ‘/temp/test.txt’ and
                             # ‘/temp/test/test.txt’ are the same file)
-                            if task.package.destination != toplevel:
+                            toplevel_bin_path = (
+                                toplevel + "/"
+                                + task.package.bin_type + "/"
+                                + binfile.split("/")[-1]
+                            )
+                            if not os.path.exists(toplevel_bin_path):
                                 command_list.append(
                                     "cp "
                                     + task.package.destination
