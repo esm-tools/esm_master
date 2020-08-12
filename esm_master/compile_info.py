@@ -65,7 +65,9 @@ def combine_components_yaml():
             "couplings",
             "install_bins",
             "install_libs",
-            "destination"
+            "destination",
+            "archfile",
+            "use_oasis"
             ]
 
     categories = ["components" , "couplings", "setups", "esm_software"]
