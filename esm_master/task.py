@@ -1,4 +1,5 @@
 import os, sys, subprocess
+import shlex # contains shlex.split that respects quoted strings
 
 from .software_package import software_package
 
@@ -394,10 +395,13 @@ class Task:
             else:
                 # os.system(command)
                 for command in command.split(";"):
-                    if "sed" in command:
-                        command = command.replace("'", "")
+                    # seb-wahl: use shlex split as sed commands that use spaces
+                    # need to be quoted, shlex split doesn't split quoted 
+                    # strings on spaces
+                    # example: sed -i '/COUPLENEMOFOCI = /s/.FALSE./.TRUE./g' oifs-43r3-foci/src/ifs/module/yommcc.F90
+                    # will fail if the "'" is removed
                     subprocess.run(
-                        command.split(),
+                        shlex.split(command),
                         check=True,
                         shell=(command.startswith("./") and command.endswith(".sh")),
                     )
