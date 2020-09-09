@@ -90,7 +90,8 @@ def combine_components_yaml():
 
 
         asyncio.get_event_loop().run_until_complete(get_all_package_info(os.listdir(cat_dir), cat, cat_dir, components_dict, relevant_entries))
-
+        # TODO(PG): Switch around async optional
+        #get_all_package_info(os.listdir(cat_dir), cat, cat_dir, components_dict, relevant_entries)
     default_infos = {}
     for i in os.listdir(DEFAULTS_DIR):
         if verbose > 1:
@@ -110,20 +111,40 @@ def combine_components_yaml():
 
 
 async def get_all_package_info(packages, cat, cat_dir, components_dict, relevant_entries):
+# TODO(PG): Switch around async optional
+#def get_all_package_info(packages, cat, cat_dir, components_dict, relevant_entries):
     tasks = []
+    # TODO(PG): Better logging (see GH Issue #116)
+    if verbose > 1:
+        print(f"packages={packages}")
     for package in packages:
+        # TODO(PG): Better logging (see GH Issue #116)
+        if verbose > 1:
+            print(f"Getting {package}")
+        # TODO(PG): Switch around async optional
+        #task = get_one_package_info(package, cat, cat_dir, components_dict, relevant_entries)
         task = asyncio.ensure_future(get_one_package_info(package, cat, cat_dir, components_dict, relevant_entries))
         tasks.append(task)
-    await asyncio.gather(*tasks, return_exceptions = True)
-
+    # TODO(PG): Switch around async optional
+    #return tasks
+    await asyncio.gather(*tasks, return_exceptions=False)
 
 
 
 async def get_one_package_info(package, cat, cat_dir, components_dict, relevant_entries):
+# TODO(PG): Switch around async optional
+#def get_one_package_info(package, cat, cat_dir, components_dict, relevant_entries):
+
+    # TODO(PG): Better logging (see GH Issue #116)
+    if verbose > 1:
+        print(f"Working on package={package}, cat={cat}, cat_dir={cat_dir}")
 
     package_dir = cat_dir + package + "/"
 
     default_file = package_dir + package + ".yaml"
+    # TODO(PG): Better logging (see GH Issue #116)
+    if verbose > 1:
+        print(f"default_file={default_file}")
 
     versioned_files = [
             package_dir + i
@@ -131,8 +152,15 @@ async def get_one_package_info(package, cat, cat_dir, components_dict, relevant_
             if i.startswith(package + "-")
             if i.endswith(".yaml")
             ]
+    # TODO(PG): Better logging (see GH Issue #116)
+    if verbose > 1:
+        print(f"versioned_files={versioned_files}")
 
     comp_config = esm_parser.yaml_file_to_dict(default_file)
+    # TODO(PG): Better logging (see GH Issue #116)
+    if verbose > 1:
+        if not comp_config:
+            print(f"Whoops, got False-y thingy!")
     if verbose > 1:
         print (f'...reading file {default_file}')
     if get_correct_entry(comp_config, {}, "version") == {}:
