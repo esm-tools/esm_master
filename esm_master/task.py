@@ -289,7 +289,13 @@ class Task:
                                 + task.package.bin_type + "/"
                                 + binfile.split("/")[-1]
                             )
-                            if not os.path.exists(toplevel_bin_path):
+                            # MA: If there are already commands that will clean the
+                            # bin folder, the following `if` is required to be true
+                            clean_command_list = [
+                                "rm -f " + toplevel_bin_path
+                            ]
+                            clean_command = any(cc in command_list for cc in clean_command_list)
+                            if not os.path.exists(toplevel_bin_path) or clean_command:
                                 command_list.append(
                                     "cp "
                                     + task.package.destination
