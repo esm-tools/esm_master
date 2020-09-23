@@ -233,6 +233,15 @@ class version_control_infos:
                 return None
             try:
                 raw_command = self.config[package.repo_type][todo + "_command"]
+
+# kh 11.09.20 support git options like --recursive
+                if package.repo_options:
+                    define_options = self.config[package.repo_type]["define_options"]
+                    raw_command = raw_command.replace("${define_options}", define_options)
+                    raw_command = raw_command.replace("${repo_options}", package.repo_options)
+                else:
+                    raw_command = raw_command.replace("${define_options} ", "")
+                    raw_command = raw_command.replace("${repo_options}", "")  # kh 11.09.20 should not really be necessary
                 if package.branch:
                     define_branch = self.config[package.repo_type]["define_branch"]
                     raw_command = raw_command.replace("${define_branch}", define_branch)
