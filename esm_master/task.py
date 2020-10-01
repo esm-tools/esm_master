@@ -395,7 +395,13 @@ class Task:
                 subprocess.run(command.split(), check=True)
             elif command.startswith("cp "):
                 # os.system(command)
-                subprocess.run(command.split(), check=True)
+                # deniz: add exception handling so that esm_master does not
+                # fail when files with the same inode number (eg. hard links)
+                # are copied on each other
+                try:  
+                    subprocess.run(command.split(), check=True)
+                except (subprocess.CalledProcessError):
+                    pass  # simply do nothing
             elif command.startswith("cd ") and ";" not in command:
                 os.chdir(command.replace("cd ", ""))
             else:
