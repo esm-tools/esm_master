@@ -1,5 +1,5 @@
 import os, sys, subprocess
-import shlex # contains shlex.split that respects quoted strings
+import shlex  # contains shlex.split that respects quoted strings
 
 from .software_package import software_package
 
@@ -7,9 +7,9 @@ from .cli import verbose
 
 import esm_environment
 
-# deniz: it is better to use more pathlib in the future so that dir/path 
+# deniz: it is better to use more pathlib in the future so that dir/path
 # operations will be more portable (supported since Python 3.4, 2014)
-import pathlib  
+import pathlib
 
 ######################################################################################
 ################################# class "task" #######################################
@@ -18,6 +18,7 @@ import pathlib
 
 class Task:
     """What you can do with a software_package, e.g. comp-awicm-2.0"""
+
     def __init__(self, raw, setup_info, vcs, general, complete_config):
         if raw == "default":
             raw = ""
@@ -57,10 +58,8 @@ class Task:
 
         if kind == "components":
             self.env = esm_environment.esm_environment.EnvironmentInfos(
-                    "compiletime",
-                    complete_config,
-                    model
-                    )
+                "compiletime", complete_config, model
+            )
         else:
             self.env = None
         if not self.todo in setup_info.meta_todos:
@@ -104,7 +103,7 @@ class Task:
                         )
                     )
         if subtasks == [] and self.todo in setup_info.meta_todos:
-        #if self.todo in setup_info.meta_todos:
+            # if self.todo in setup_info.meta_todos:
             for todo in todos:
                 if todo in self.package.targets:
                     subtasks.append(
@@ -289,43 +288,55 @@ class Task:
                             # (Prevents cp: ‘/temp/test.txt’ and
                             # ‘/temp/test/test.txt’ are the same file)
                             toplevel_bin_path = (
-                                toplevel + "/"
-                                + task.package.bin_type + "/"
+                                toplevel
+                                + "/"
+                                + task.package.bin_type
+                                + "/"
                                 + binfile.split("/")[-1]
                             )
                             # MA: If there are already commands that will clean the
                             # bin folder, the following `if` is required to be true
-                            clean_command_list = [
-                                "rm -f " + toplevel_bin_path
-                            ]
-                            clean_command = any(cc in command_list for cc in clean_command_list)
+                            clean_command_list = ["rm -f " + toplevel_bin_path]
+                            clean_command = any(
+                                cc in command_list for cc in clean_command_list
+                            )
 
                             # deniz: bug fix for the fesom compilation issue
-                            # at some point these string concats need to be 
-                            # replaced by pathlib 
-                            bin_path_target  = pathlib.Path(toplevel + "/" +  task.package.bin_type)
-                            binary_file_path = pathlib.Path(task.package.destination + "/" + binfile)
+                            # at some point these string concats need to be
+                            # replaced by pathlib
+                            bin_path_target = pathlib.Path(
+                                toplevel + "/" + task.package.bin_type
+                            )
+                            binary_file_path = pathlib.Path(
+                                task.package.destination + "/" + binfile
+                            )
                             binary_file_parent = binary_file_path.parent
-                            #path2bin_origin = "/".join(binary_file_path.split('/')[:-1])
-                            
+                            # path2bin_origin = "/".join(binary_file_path.split('/')[:-1])
+
                             # deniz: don't copy the files if the paths are same.
-                            # I think pathlib.Path.resolve() is a better option 
+                            # I think pathlib.Path.resolve() is a better option
                             # than simple string comparison
-                            should_copy_files = \
-                            binary_file_parent.resolve() != bin_path_target.resolve()
+                            should_copy_files = (
+                                binary_file_parent.resolve()
+                                != bin_path_target.resolve()
+                            )
 
                             # add the remaining conditions
-                            should_copy_files = should_copy_files \
-                            and not os.path.exists(toplevel_bin_path) \
-                            or clean_command
+                            should_copy_files = (
+                                should_copy_files
+                                and not os.path.exists(toplevel_bin_path)
+                                or clean_command
+                            )
 
                             if should_copy_files:
-                                # deniz: I think " ".join() is a more Pythonic 
+                                # deniz: I think " ".join() is a more Pythonic
                                 # way to construct the command strings
-                                cmd_str = "  ".join(["cp", str(binary_file_path), str(bin_path_target)])
+                                cmd_str = "  ".join(
+                                    ["cp", str(binary_file_path), str(bin_path_target)]
+                                )
                                 command_list.append(cmd_str)
-                                real_command_list.append(cmd_str) 
-                            
+                                real_command_list.append(cmd_str)
+
                 elif task.todo == "clean":
                     if task.package.bin_names:
                         for binfile in task.package.bin_names:
@@ -411,7 +422,7 @@ class Task:
                 # os.system(command)
                 for command in command.split(";"):
                     # seb-wahl: use shlex split as sed commands that use spaces
-                    # need to be quoted, shlex split doesn't split quoted 
+                    # need to be quoted, shlex split doesn't split quoted
                     # strings on spaces
                     # example: sed -i '/COUPLENEMOFOCI = /s/.FALSE./.TRUE./g' oifs-43r3-foci/src/ifs/module/yommcc.F90
                     # will fail if the "'" is removed
@@ -456,6 +467,3 @@ class Task:
             print("    Executing commands in this order:")
             for command in self.shown_command_list:
                 print("        ", command)
-
-
-
