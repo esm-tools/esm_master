@@ -7,6 +7,10 @@ from .cli import verbose
 
 import esm_environment
 
+# deniz: it is better to use more pathlib in the future so that dir/path 
+# operations will be more portable (supported since Python 3.4, 2014)
+import pathlib  
+
 ######################################################################################
 ################################# class "task" #######################################
 ######################################################################################
@@ -295,27 +299,33 @@ class Task:
                                 "rm -f " + toplevel_bin_path
                             ]
                             clean_command = any(cc in command_list for cc in clean_command_list)
-                            if not os.path.exists(toplevel_bin_path) or clean_command:
-                                command_list.append(
-                                    "cp "
-                                    + task.package.destination
-                                    + "/"
-                                    + binfile
-                                    + " "
-                                    + toplevel
-                                    + "/"
-                                    + task.package.bin_type
-                                )
-                                real_command_list.append(
-                                    "cp "
-                                    + task.package.destination
-                                    + "/"
-                                    + binfile
-                                    + " "
-                                    + toplevel
-                                    + "/"
-                                    + task.package.bin_type
-                                )
+
+                            # deniz: bug fix for the fesom compilation issue
+                            # at some point these string concats need to be 
+                            # replaced by pathlib 
+                            bin_path_target  = pathlib.Path(toplevel + "/" +  task.package.bin_type)
+                            binary_file_path = pathlib.Path(task.package.destination + "/" + binfile)
+                            binary_file_parent = binary_file_path.parent
+                            #path2bin_origin = "/".join(binary_file_path.split('/')[:-1])
+                            
+                            # deniz: don't copy the files if the paths are same.
+                            # I think pathlib.Path.resolve() is a better option 
+                            # than simple string comparison
+                            should_copy_files = \
+                            binary_file_parent.resolve() != bin_path_target.resolve()
+
+                            # add the remaining conditions
+                            should_copy_files = should_copy_files \
+                            and not os.path.exists(toplevel_bin_path) \
+                            or clean_command
+
+                            if should_copy_files:
+                                # deniz: I think " ".join() is a more Pythonic 
+                                # way to construct the command strings
+                                cmd_str = "  ".join(["cp", str(binary_file_path), str(bin_path_target)])
+                                command_list.append(cmd_str)
+                                real_command_list.append(cmd_str) 
+                            
                 elif task.todo == "clean":
                     if task.package.bin_names:
                         for binfile in task.package.bin_names:
@@ -394,14 +404,7 @@ class Task:
                 # os.system(command)
                 subprocess.run(command.split(), check=True)
             elif command.startswith("cp "):
-                # os.system(command)
-                # deniz: add exception handling so that esm_master does not
-                # fail when files with the same inode number (eg. hard links)
-                # are copied on each other
-                try:  
-                    subprocess.run(command.split(), check=True)
-                except (subprocess.CalledProcessError):
-                    pass  # simply do nothing
+                subprocess.run(command.split(), check=True)
             elif command.startswith("cd ") and ";" not in command:
                 os.chdir(command.replace("cd ", ""))
             else:
