@@ -322,10 +322,8 @@ class Task:
                             )
 
                             # add the remaining conditions
-                            should_copy_files = (
-                                should_copy_files
-                                and not os.path.exists(toplevel_bin_path)
-                                or clean_command
+                            should_copy_files = should_copy_files and (
+                                not os.path.exists(toplevel_bin_path) or clean_command
                             )
 
                             if should_copy_files:
