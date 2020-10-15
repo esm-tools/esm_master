@@ -11,6 +11,8 @@ from . import __version__
 
 def main():
 
+    from esm_motd import check_all_esm_packages
+    check_all_esm_packages()
     # global check, verbose
 
     parser = argparse.ArgumentParser(
