@@ -21,6 +21,7 @@ from .task import Task
 
 def main_flow(parsed_args, target):
 
+    # Creates an object of the class GeneralInfos
     main_infos = GeneralInfos()
     vcs = version_control_infos()
    
