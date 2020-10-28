@@ -1,4 +1,6 @@
-import os, sys, subprocess
+import os
+import sys
+import subprocess
 import shlex  # contains shlex.split that respects quoted strings
 
 from .software_package import software_package
@@ -10,6 +12,10 @@ import esm_environment
 # deniz: it is better to use more pathlib in the future so that dir/path
 # operations will be more portable (supported since Python 3.4, 2014)
 import pathlib
+
+
+def install(package):
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "--user", package])
 
 ######################################################################################
 ################################# class "task" #######################################
@@ -360,11 +366,7 @@ class Task:
                                 + binfile.split("/", -1)[-1]
                             )
 
-        import subprocess
-        import sys
 
-        def install(package):
-            subprocess.check_call([sys.executable, "-m", "pip", "install", "--user", package])
 
         if task.todo in ["comp"]:
             for component in self.required_plugins:
