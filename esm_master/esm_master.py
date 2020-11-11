@@ -30,7 +30,7 @@ def main_flow(parsed_args, target):
     
     user_config = write_minimal_user_config(setups2models.config)
 
-    from esm_runscripts.esm_sim_objects import SimulationSetup
+    from esm_runscripts.sim_objects import SimulationSetup
     complete_setup = SimulationSetup(user_config=user_config)
     complete_config = complete_setup.config
 
