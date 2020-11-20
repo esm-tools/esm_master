@@ -43,6 +43,7 @@ class software_package:
             self.bin_names = [None]
             self.command_list = None
             self.destination = None
+            self.clone_destination = None
             self.coupling_changes = None
 
     def fill_in_infos(self, setup_info, vcs, general):
@@ -52,6 +53,7 @@ class software_package:
         self.complete_targets(setup_info)
         self.repo_type, self.repo, self.branch = self.get_repo_info(setup_info, vcs)
         self.destination = setup_info.get_config_entry(self, "destination")
+        self.clone_destination = setup_info.get_config_entry(self, "clone_destination")
         if not self.destination:
             self.destination = self.raw_name
 
