@@ -66,6 +66,7 @@ def combine_components_yaml():
             "install_bins",
             "install_libs",
             "destination",
+            "clone_destination",
             "archfile",
             "use_oasis"
             ]

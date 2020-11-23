@@ -264,7 +264,9 @@ class version_control_infos:
                 )
             raw_command = raw_command.replace("${repository}", repo)
             if todo == "get":
-                if package.destination:
+                if package.clone_destination:
+                    raw_command = raw_command + " " + package.clone_destination
+                elif package.destination:
                     raw_command = raw_command + " " + package.destination
                 else:
                     raw_command = raw_command + " " + package.raw_name
