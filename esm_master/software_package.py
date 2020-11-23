@@ -38,7 +38,9 @@ class software_package:
             self.fill_in_infos(setup_info, vcs, general)
         else:
             self.targets = self.subpackages = None
-            self.repo_type = self.repo = self.branch = None
+
+# kh 11.09.20 support git options like --recursive
+            self.repo_type = self.repo = self.branch = self.repo_options = None
             self.bin_type = None
             self.bin_names = [None]
             self.command_list = None
@@ -51,7 +53,9 @@ class software_package:
         self.targets = self.get_targets(setup_info, vcs)
         self.subpackages = self.get_subpackages(setup_info, vcs, general)
         self.complete_targets(setup_info)
-        self.repo_type, self.repo, self.branch = self.get_repo_info(setup_info, vcs)
+
+# kh 11.09.20 support git options like --recursive
+        self.repo_type, self.repo, self.branch, self.repo_options = self.get_repo_info(setup_info, vcs)
         self.destination = setup_info.get_config_entry(self, "destination")
         self.clone_destination = setup_info.get_config_entry(self, "clone_destination")
         if not self.destination:
@@ -60,6 +64,7 @@ class software_package:
         self.coupling_changes = self.get_coupling_changes(setup_info)
         self.repo = replace_var(self.repo, self.model + ".version", self.version)
         self.branch = replace_var(self.branch, self.model + ".version", self.version)
+        self.repo_options = replace_var(self.repo_options, self.model + ".version", self.version)
 
         self.bin_type, self.bin_names = self.get_comp_type(setup_info)
         self.command_list = self.get_command_list(setup_info, vcs, general)
@@ -208,7 +213,11 @@ class software_package:
                 repo_type = check_repo
                 break
         branch = setup_info.get_config_entry(self, "branch")
-        return repo_type, repo, branch
+
+# kh 11.09.20 support git options like --recursive
+        repo_options = setup_info.get_config_entry(self, "repo_options")
+
+        return repo_type, repo, branch, repo_options
 
     def get_command_list(self, setup_info, vcs, general):
         command_list = {}
@@ -250,6 +259,10 @@ class software_package:
                 self.repo,
                 ", branch: ",
                 self.branch,
+
+# kh 11.09.20 support git options like --recursive
+                ", repo_options: ",
+                self.repo_options,
             )
         if self.bin_type:
             print("    Bin_type: ", self.bin_type, ", bin_names: ", self.bin_names)
