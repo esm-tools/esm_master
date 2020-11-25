@@ -417,7 +417,7 @@ class Task:
     def validate(self):
         self.check_requirements()
 
-    def execute(self):
+    def execute(self, ignore_errors = False):
         for task in self.ordered_tasks:
             if task.todo in ["conf", "comp"]:
                 if task.package.kind == "components":
@@ -430,9 +430,9 @@ class Task:
         for command in self.command_list:
             if command.startswith("mkdir"):
                 # os.system(command)
-                subprocess.run(command.split(), check=True)
+                subprocess.run(command.split(), check= not ignore_errors)
             elif command.startswith("cp "):
-                subprocess.run(command.split(), check=True)
+                subprocess.run(command.split(), check= not ignore errors)
             elif command.startswith("cd ") and ";" not in command:
                 os.chdir(command.replace("cd ", ""))
             else:
@@ -445,7 +445,7 @@ class Task:
                     # will fail if the "'" is removed
                     subprocess.run(
                         shlex.split(command),
-                        check=True,
+                        check= not ignore_errors,
                         shell=(command.startswith("./") and command.endswith(".sh")),
                     )
 

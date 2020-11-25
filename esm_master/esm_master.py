@@ -23,13 +23,20 @@ def main_flow(parsed_args, target):
 
     main_infos = GeneralInfos()
     vcs = version_control_infos()
-   
+
     setups2models = setup_and_model_infos(vcs, main_infos, parsed_args)
     tab_completion(parsed_args, setups2models)
     setups2models.config = setups2models.reduce(target)
     
     user_config = write_minimal_user_config(setups2models.config)
 
+    if "modify" in parsed_args: 
+        user_config["modify_config"] = parsed_args["modify"]
+    if "ignore" in parsed_args:
+        ignore_errors  = parsed_args["ignore"]
+    else:
+        ignore_errors = False
+   
     from esm_runscripts.sim_objects import SimulationSetup
     complete_setup = SimulationSetup(user_config=user_config)
     complete_config = complete_setup.config
@@ -47,7 +54,7 @@ def main_flow(parsed_args, target):
         return 0
     user_task.validate()
 
-    user_task.execute() #env)
+    user_task.execute(ignore_errors) #env)
 
     database = database_actions.database_entry(
         user_task.todo, user_task.package.raw_name, ESM_MASTER_DIR
