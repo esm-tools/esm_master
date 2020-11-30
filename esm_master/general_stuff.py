@@ -1,3 +1,4 @@
+import esm_tools
 import esm_rcfile
 import esm_parser
 import os
@@ -14,13 +15,23 @@ ESM_MASTER_DIR = os.getenv("PWD")
 
 # PG: COMPONENTS_YAML is now built out of multiple small ones
 #COMPONENTS_YAML = FUNCTION_PATH + "/esm_master/setups2models.yaml"
-COMPONENTS_DIR = FUNCTION_PATH + "/components/"
-SETUPS_DIR = FUNCTION_PATH + "/setups/"
-COUPLINGS_DIR = FUNCTION_PATH + "/couplings/"
-DEFAULTS_DIR = FUNCTION_PATH + "/defaults/"
-ESM_SOFTWARE_DIR = FUNCTION_PATH + "/esm_software/"
-CONFIG_YAML = FUNCTION_PATH + "/esm_software/esm_master/esm_master.yaml"
-VCS_FOLDER = FUNCTION_PATH + "/other_software/vcs/"
+if not FUNCTION_PATH.startswith("/dev/null"):
+    COMPONENTS_DIR = FUNCTION_PATH + "/components/"
+    SETUPS_DIR = FUNCTION_PATH + "/setups/"
+    COUPLINGS_DIR = FUNCTION_PATH + "/couplings/"
+    DEFAULTS_DIR = FUNCTION_PATH + "/defaults/"
+    ESM_SOFTWARE_DIR = FUNCTION_PATH + "/esm_software/"
+    CONFIG_YAML = FUNCTION_PATH + "/esm_software/esm_master/esm_master.yaml"
+    VCS_FOLDER = FUNCTION_PATH + "/other_software/vcs/"
+# Else case covers if user has removed FUNCTION_PATH from rcfile:
+else:
+    COMPONENTS_DIR = esm_tools.get_config_filepath("/components/")
+    SETUPS_DIR = esm_tools.get_config_filepath("/setups/")
+    COUPLINGS_DIR = esm_tools.get_config_filepath("/couplings/")
+    DEFAULTS_DIR = esm_tools.get_config_filepath("/defaults/")
+    ESM_SOFTWARE_DIR = esm_tools.get_config_filepath("/esm_software/")
+    CONFIG_YAML = esm_tools.get_config_filepath("/esm_software/esm_master/esm_master.yaml")
+    VCS_FOLDER = esm_tools.get_config_filepath("/other_software/vcs/")
 
 OVERALL_CONF_FILE = esm_rcfile.rcfile
 
