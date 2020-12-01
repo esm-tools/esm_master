@@ -432,7 +432,7 @@ class Task:
                 # os.system(command)
                 subprocess.run(command.split(), check= not ignore_errors)
             elif command.startswith("cp "):
-                subprocess.run(command.split(), check= not ignore errors)
+                subprocess.run(command.split(), check= not ignore_errors)
             elif command.startswith("cd ") and ";" not in command:
                 os.chdir(command.replace("cd ", ""))
             else:

@@ -19,6 +19,7 @@ from .compile_info import setup_and_model_infos
 from .task import Task
 
 
+
 def main_flow(parsed_args, target):
 
     main_infos = GeneralInfos()
@@ -30,8 +31,11 @@ def main_flow(parsed_args, target):
     
     user_config = write_minimal_user_config(setups2models.config)
 
+# kh 27.11.20
     if "modify" in parsed_args: 
-        user_config["modify_config"] = parsed_args["modify"]
+        if "general" in user_config:
+            user_config["general"]["modify_config_file"] = parsed_args["modify"]
+
     if "ignore" in parsed_args:
         ignore_errors  = parsed_args["ignore"]
     else:
