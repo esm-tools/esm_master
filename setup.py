@@ -11,6 +11,7 @@ with open("HISTORY.rst") as history_file:
     history = history_file.read()
 
 requirements = [
+    "esm_motd @ git+https://github.com/esm-tools/esm_motd.git",
     "esm_parser @ git+https://github.com/esm-tools/esm_parser.git",
     "esm_environment @ git+https://github.com/esm-tools/esm_environment.git",
     "esm_rcfile @ git+https://github.com/esm-tools/esm_rcfile.git",
