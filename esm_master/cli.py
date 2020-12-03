@@ -39,6 +39,25 @@ def main():
     parser.add_argument(
         "--version", action="version", version="%(prog)s " + __version__
     )
+
+    parser.add_argument(
+        "--modify-config",
+        "-m", 
+        dest="modify",
+        help="[m]odify configuration", 
+        default="", # kh 15.07.20 "usermods.yaml"
+    )
+
+# kh 21.07.20
+    parser.add_argument(
+        "--ignore-errors",
+        "-i",
+        dest="ignore",
+        help="Ignore errors",
+        default=False,
+        action="store_true",
+    )
+
     parser.add_argument(
         "--keep-task-script",
         "-k",
@@ -57,6 +76,7 @@ def main():
     target = ""
     check = False
     verbose = 0
+    modify_config_file = False
 
 
     if parsed_args:
@@ -68,6 +88,8 @@ def main():
             verbose = parsed_args["verbose"]
         if "keep" in parsed_args:
             keep = parsed_args["keep"]
+        if "modify" in parsed_args: 
+            modify_config_file = parsed_args["modify"]
 
     if not target:
         target = ""
