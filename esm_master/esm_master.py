@@ -30,6 +30,8 @@ def main_flow(parsed_args, target):
     setups2models.config = setups2models.reduce(target)
     
     user_config = write_minimal_user_config(setups2models.config)
+    # Miguel: Move this somewhere else after talking to Paul and Dirk
+    user_config["general"]["run_or_compile"] = "compiletime"
 
 # kh 27.11.20
     if "modify" in parsed_args: 
