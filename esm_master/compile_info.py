@@ -62,6 +62,7 @@ def combine_components_yaml():
             "clean_command",
             "components",
             "coupling_changes",
+            "coupled_component_changes",
             "requires",
             "couplings",
             "install_bins",
@@ -400,6 +401,9 @@ class setup_and_model_infos:
                     reduced_config = self.append_to_conf(
                         component, reduced_config, toplevel
                     )
+                    reduced_config = self.add_coupled_component_changes(
+                        model, component, reduced_config
+                    )
         elif kind == "components":
             sep = ""
             if toplevel == "":
@@ -427,6 +431,60 @@ class setup_and_model_infos:
                     reduced_config = self.append_to_conf(
                         requirement, reduced_config, toplevel
                     )
+
+        return reduced_config
+
+    def add_coupled_component_changes(self, coupl, component, reduced_config):
+        """
+        Adds the variables contained in the dictionary ``coupled_component_changes``,
+        in the coupling ``coupl``, to the corresponding ``component`` in
+        ``reduced_config``. It only adds these variables if they already exist in
+        ``reduced_config``. This is done this way to limit the variables that can be
+        defined in the ``coupled_component_changes`` to only the ones in
+        ``relevant_entries`` (the onces necessary for compilation). Remember, so far
+        the ``couplings`` files are only build-related, `runtime` configurations should
+        go into the ``setups`` files.
+
+        Parameters
+        ----------
+        coupl : str
+            Name of the coupling.
+        component : str
+            String containing the component and the version number.
+        reduced_config : dict
+            Configuration where the changes need to be made.
+
+        Returns
+        -------
+        reduced_config : dict
+            Configuration with the changes in ``coupled_component_changes`` already
+            included in the corresponding ``component``.
+        """
+        # Get ``model`` and ``version``
+        (todo, kind, model, version, only_subtarget, raw) = self.split_raw_target(
+            component, self
+        )
+        # Load all the necessary changes specified in the coupling for the current
+        # ``component``
+        component_changes = reduced_config[coupl].get("coupled_component_changes", {})
+        changes = component_changes.get(model, {})
+        # Loop through the changes and find if the variables exist in
+        # ``reduced_config``. If they do, update them
+        for key, value in changes.items():
+            if key in reduced_config.get(model, {}):
+                reduced_config[model].update({key: value})
+            else:
+                esm_parser.user_note(
+                    f'Variable "{key}" not found in the configuration',
+                    [
+                        f'"{key}" is defined "{coupl}.coupled_component_changes", ' +
+                        f'however, it is either not given a default value in your ' +
+                        f'"{model}" config file, or it is not a build-relevant ' +
+                        f'variable. Remember, the "couplings" files should contain ' +
+                        f'only build-related information, runtime configurations ' +
+                        f'should go into the "setups" files.'
+                    ]
+                )
 
         return reduced_config
 
