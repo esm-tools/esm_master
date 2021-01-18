@@ -441,7 +441,7 @@ class setup_and_model_infos:
         ``reduced_config``. It only adds these variables if they already exist in
         ``reduced_config``. This is done this way to limit the variables that can be
         defined in the ``coupled_component_changes`` to only the ones in
-        ``relevant_entries`` (the onces necessary for compilation). Remember, so far
+        ``relevant_entries`` (the ones necessary for compilation). Remember, so far
         the ``couplings`` files are only build-related, `runtime` configurations should
         go into the ``setups`` files.
 
