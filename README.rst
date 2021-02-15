@@ -47,7 +47,7 @@ Voila! 🎉
 Configuration
 -------------
 
-The ``esm_master`` tool is configured via a YAML files, which can be found under your ``esm_tools`` directory: ``configs/esm_software/esm_master/``. This contains two files:
+The ``esm_master`` tool is configured via YAML files, which can be found under your ``esm_tools`` directory: ``configs/esm_software/esm_master/``. This contains two files:
 
 * ``esm-software.yaml``
 
