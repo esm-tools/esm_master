@@ -32,12 +32,23 @@ def main_flow(parsed_args, target):
     # Miguel: Move this somewhere else after talking to Paul and Dirk
     user_config["general"]["run_or_compile"] = "compiletime"
 
+    # deniz: small bugfix: when esm_master receives --verbose, it did not make
+    # it into the configuration since it was only a global variable
+    if verbose:
+        user_config["general"]["verbose"] = True
+    
     from esm_runscripts.sim_objects import SimulationSetup
     complete_setup = SimulationSetup(user_config=user_config)
     complete_config = complete_setup.config
 
     # This will be a problem later with GEOMAR
     #setups2models.replace_last_vars(env)
+
+
+    # deniz
+    import yaml
+    print(yaml.dump(complete_config, default_flow_style=False, indent=4) )
+    # deniz
 
     user_task = Task(target, setups2models, vcs, main_infos, complete_config)
     if verbose > 0:
@@ -59,4 +70,5 @@ def main_flow(parsed_args, target):
     if not parsed_args["keep"]:
         user_task.cleanup_script()
 
+    
     return 0
