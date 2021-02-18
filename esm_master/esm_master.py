@@ -2,8 +2,12 @@
 # import fileinput, os, sys, getopt
 
 import sys
+import os
+import yaml
 
 from . import database_actions
+
+# deniz: TODO: refactor verbose and check like in other tools (eg. esm_runscripts)
 from .cli import verbose, check
 
 from .general_stuff import (
@@ -45,19 +49,25 @@ def main_flow(parsed_args, target):
     #setups2models.replace_last_vars(env)
 
 
-    # deniz
-    import yaml
-    print(yaml.dump(complete_config, default_flow_style=False, indent=4) )
-    # deniz
-
     user_task = Task(target, setups2models, vcs, main_infos, complete_config)
+
     if verbose > 0:
         user_task.output()
 
     user_task.output_steps()
 
     if check:
+        # deniz: if the environment variable ESM_MASTER_DEBUG is also set dump
+        # the contents of the current config to stdout for more investigation 
+        if os.environ.get("ESM_MASTER_DEBUG", None):
+            print()
+            print("Contents of the complete_config:")
+            print("--------------------------------")
+            print(yaml.dump(complete_config, default_flow_style=False, indent=4) ) 
+        
+        print("esm_master: check mode is activated. Not executing the actions above")
         return 0
+    
     user_task.validate()
 
     user_task.execute() #env)
