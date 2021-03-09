@@ -246,6 +246,7 @@ class version_control_infos:
                 raw_command = self.config[package.repo_type][todo + "_command"]
 
 # kh 11.09.20 support git options like --recursive
+                # repo_options in the model.yaml is assigned to define_options
                 if package.repo_options:
                     define_options = self.config[package.repo_type]["define_options"]
                     raw_command = raw_command.replace("${define_options}", define_options)
@@ -284,6 +285,10 @@ class version_control_infos:
                 )
             raw_command = raw_command.replace("${repository}", repo)
             if todo == "get":
+                if package.repo_type == "curl":
+                    raw_command = raw_command.replace("${curl-repository}", repo)
+                    # return so that it is not overwritten
+                    return raw_command   
                 if package.clone_destination:
                     raw_command = raw_command + " " + package.clone_destination
                 elif package.destination:

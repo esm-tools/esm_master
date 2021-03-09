@@ -54,6 +54,7 @@ def combine_components_yaml():
 
     relevant_entries = [
             "git-repository",
+            "curl-repository",  # deniz
             "repo_options", # kh 11.09.20 support git options like --recursive
             "branch",
             "tag",
