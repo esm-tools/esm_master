@@ -435,8 +435,21 @@ class Task:
                 subprocess.run(command.split(), check=True)
             elif command.startswith("cd ") and ";" not in command:
                 os.chdir(command.replace("cd ", ""))
+            # deniz: add pipe support
+            elif '|' in command:
+                # if there is a pipe in the command, then separate these in to
+                # two parts. Eg. curl foo.tar.gz | tar zx
+                curl_command, pipe_command = command.split('|') 
+                curl_process = subprocess.Popen(curl_command.split(), 
+                    stdout=subprocess.PIPE)
+                output = subprocess.check_output(pipe_command.split(), 
+                    stdin=curl_process.stdout)
+                curl_process.wait()
             else:
                 # os.system(command)
+                # deniz: I personally did not like the iterator and the list 
+                # having the same name. for com in command.split(';') would be
+                # better IMHO
                 for command in command.split(";"):
                     # seb-wahl: use shlex split as sed commands that use spaces
                     # need to be quoted, shlex split doesn't split quoted

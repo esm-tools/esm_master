@@ -34,19 +34,32 @@ class software_package:
             )
 
         self.tag = None
+
+        # deniz: Linux pipe support: eg. curl foo.tar.gz | tar zx
+        # !!! if these lines are not here esm_master crashes on xios. 
+        self.pipe_options = None
+        
+        # deniz: I don't like the following lines. This is not good OOP.
+        # Constructor should initialize all variables and they should not be
+        # defined in an else block
         if not no_infos:
             self.fill_in_infos(setup_info, vcs, general)
         else:
             self.targets = self.subpackages = None
 
 # kh 11.09.20 support git options like --recursive
-            self.repo_type = self.repo = self.branch = self.repo_options = None
+            self.repo_type = None
+            self.repo = None 
+            self.branch = None
+            self.repo_options = None
             self.bin_type = None
             self.bin_names = [None]
             self.command_list = None
             self.destination = None
             self.clone_destination = None
             self.coupling_changes = None
+            # deniz: Linux pipe support: eg. curl foo.tar.gz | tar zx
+            self.pipe_options = None
 
     def fill_in_infos(self, setup_info, vcs, general):
 
@@ -66,9 +79,12 @@ class software_package:
         self.branch = replace_var(self.branch, self.model + ".version", self.version)
         self.repo_options = replace_var(self.repo_options, self.model + ".version", self.version)
 
+        # deniz: Linux pipe support
+        self.pipe_options = setup_info.get_config_entry(self, 'pipe_options')
+
         self.bin_type, self.bin_names = self.get_comp_type(setup_info)
         self.command_list = self.get_command_list(setup_info, vcs, general)
-
+        
     def get_targets(self, setup_info, vcs):
         config = setup_info.config
         targets = []

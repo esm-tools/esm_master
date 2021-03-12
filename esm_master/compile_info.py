@@ -70,7 +70,8 @@ def combine_components_yaml():
             "destination",
             "clone_destination",
             "archfile",
-            "use_oasis"
+            "use_oasis",
+            "pipe_options"  # deniz: Linux pipe support
             ]
 
     categories = ["components" , "couplings", "setups", "esm_software"]
