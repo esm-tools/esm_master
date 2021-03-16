@@ -15,7 +15,10 @@ import pathlib
 
 
 def install(package):
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "--user", package])
+    try:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+    except:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "--user", package])
 
 ######################################################################################
 ################################# class "task" #######################################
