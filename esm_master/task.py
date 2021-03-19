@@ -8,6 +8,7 @@ from .software_package import software_package
 from .cli import verbose
 
 import esm_environment
+import esm_plugin_manager
 
 # deniz: it is better to use more pathlib in the future so that dir/path
 # operations will be more portable (supported since Python 3.4, 2014)
@@ -15,7 +16,21 @@ import pathlib
 
 
 def install(package):
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "--user", package])
+    """
+    Checks if a package is already installed in the system and if it's not, then it
+    installs it.
+
+    Parameters
+    ----------
+    package : str
+        Name of the package or get operation.
+    """
+    package_name = package.split("/")[-1]
+    installed_packages = esm_plugin_manager.find_installed_plugins()
+    if not package_name in installed_packages:
+        subprocess.check_call(
+            [sys.executable, "-m", "pip", "install", "--user", package]
+        )
 
 ######################################################################################
 ################################# class "task" #######################################
@@ -45,6 +60,10 @@ class Task:
         for key in complete_config:
             if "required_plugins" in complete_config[key]:
                 self.required_plugins[key] = complete_config[key]["required_plugins"]
+        # Initialize the ``already_installed_plugins`` attribute if it does not exist
+        general.already_installed_plugins = self.already_installed_plugins = getattr(
+            general, "already_installed_plugins", []
+        )
 
         if type(raw) == str:
             (
@@ -371,7 +390,10 @@ class Task:
         if task.todo in ["comp"]:
             for component in self.required_plugins:
                 for plugin in self.required_plugins[component]:
-                    install(plugin)
+                    # Install the plugin if is not already installed
+                    if plugin not in self.already_installed_plugins:
+                        install(plugin)
+                        self.already_installed_plugins.append(plugin)
 
         if self.package.kind in ["setups", "couplings"]:
             command_list.append("cd ..")
