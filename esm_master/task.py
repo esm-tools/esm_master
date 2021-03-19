@@ -465,11 +465,15 @@ class Task:
                     # strings on spaces
                     # example: sed -i '/COUPLENEMOFOCI = /s/.FALSE./.TRUE./g' oifs-43r3-foci/src/ifs/module/yommcc.F90
                     # will fail if the "'" is removed
-                    subprocess.run(
-                        shlex.split(command),
-                        check=True,
-                        shell=(command.startswith("./") and command.endswith(".sh")),
-                    )
+                    command_spl = shlex.split(command)
+                    if "cd" == command_spl[0]:
+                        os.chdir(command_spl[1])
+                    else:
+                        subprocess.run(
+                            command_spl,
+                            check= not ignore_errors,
+                            shell=(command.startswith("./") and command.endswith(".sh")),
+                        )
 
     def output(self):
         print()
