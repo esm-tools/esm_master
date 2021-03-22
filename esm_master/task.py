@@ -471,7 +471,7 @@ class Task:
                     else:
                         subprocess.run(
                             command_spl,
-                            check= not ignore_errors,
+                            check=True,
                             shell=(command.startswith("./") and command.endswith(".sh")),
                         )
 
