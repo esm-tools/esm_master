@@ -269,6 +269,11 @@ class version_control_infos:
                 else:
                     raw_command = raw_command.replace("${define_tag} ", "")
                     raw_command = raw_command.replace("${tag}", "")
+                    
+                # deniz: pipe support. Eg. curl foo.tar.gz | tar xz
+                # pipe_options is given in model yaml file
+                if package.pipe_options:
+                    raw_command = raw_command.replace("${pipe_options}", package.pipe_options)
             except:
                 print("Sorry, no " + todo + "_command defined for " + package.repo_type)
                 sys.exit(42)
