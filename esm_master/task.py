@@ -8,6 +8,7 @@ from .software_package import software_package
 from .cli import verbose
 
 import esm_environment
+import esm_plugin_manager
 
 # deniz: it is better to use more pathlib in the future so that dir/path
 # operations will be more portable (supported since Python 3.4, 2014)
@@ -15,7 +16,21 @@ import pathlib
 
 
 def install(package):
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "--user", package])
+    """
+    Checks if a package is already installed in the system and if it's not, then it
+    installs it.
+
+    Parameters
+    ----------
+    package : str
+        Name of the package or get operation.
+    """
+    package_name = package.split("/")[-1]
+    installed_packages = esm_plugin_manager.find_installed_plugins()
+    if not package_name in installed_packages:
+        subprocess.check_call(
+            [sys.executable, "-m", "pip", "install", "--user", package]
+        )
 
 ######################################################################################
 ################################# class "task" #######################################
@@ -45,6 +60,10 @@ class Task:
         for key in complete_config:
             if "required_plugins" in complete_config[key]:
                 self.required_plugins[key] = complete_config[key]["required_plugins"]
+        # Initialize the ``already_installed_plugins`` attribute if it does not exist
+        general.already_installed_plugins = self.already_installed_plugins = getattr(
+            general, "already_installed_plugins", []
+        )
 
         if type(raw) == str:
             (
@@ -371,7 +390,10 @@ class Task:
         if task.todo in ["comp"]:
             for component in self.required_plugins:
                 for plugin in self.required_plugins[component]:
-                    install(plugin)
+                    # Install the plugin if is not already installed
+                    if plugin not in self.already_installed_plugins:
+                        install(plugin)
+                        self.already_installed_plugins.append(plugin)
 
         if self.package.kind in ["setups", "couplings"]:
             command_list.append("cd ..")
@@ -435,19 +457,36 @@ class Task:
                 subprocess.run(command.split(), check=True)
             elif command.startswith("cd ") and ";" not in command:
                 os.chdir(command.replace("cd ", ""))
+            # deniz: add pipe support
+            elif '|' in command:
+                # if there is a pipe in the command, then separate these in to
+                # two parts. Eg. curl foo.tar.gz | tar zx
+                curl_command, pipe_command = command.split('|') 
+                curl_process = subprocess.Popen(curl_command.split(), 
+                    stdout=subprocess.PIPE)
+                output = subprocess.check_output(pipe_command.split(), 
+                    stdin=curl_process.stdout)
+                curl_process.wait()
             else:
                 # os.system(command)
+                # deniz: I personally did not like the iterator and the list 
+                # having the same name. for com in command.split(';') would be
+                # better IMHO
                 for command in command.split(";"):
                     # seb-wahl: use shlex split as sed commands that use spaces
                     # need to be quoted, shlex split doesn't split quoted
                     # strings on spaces
                     # example: sed -i '/COUPLENEMOFOCI = /s/.FALSE./.TRUE./g' oifs-43r3-foci/src/ifs/module/yommcc.F90
                     # will fail if the "'" is removed
-                    subprocess.run(
-                        shlex.split(command),
-                        check=True,
-                        shell=(command.startswith("./") and command.endswith(".sh")),
-                    )
+                    command_spl = shlex.split(command)
+                    if "cd" == command_spl[0]:
+                        os.chdir(command_spl[1])
+                    else:
+                        subprocess.run(
+                            command_spl,
+                            check=True,
+                            shell=(command.startswith("./") and command.endswith(".sh")),
+                        )
 
     def output(self):
         print()

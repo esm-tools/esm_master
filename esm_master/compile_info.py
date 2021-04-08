@@ -54,6 +54,7 @@ def combine_components_yaml():
 
     relevant_entries = [
             "git-repository",
+            "curl-repository",  # deniz
             "repo_options", # kh 11.09.20 support git options like --recursive
             "branch",
             "tag",
@@ -69,7 +70,8 @@ def combine_components_yaml():
             "destination",
             "clone_destination",
             "archfile",
-            "use_oasis"
+            "use_oasis",
+            "pipe_options"  # deniz: Linux pipe support
             ]
 
     categories = ["components" , "couplings", "setups", "esm_software"]
