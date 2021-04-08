@@ -2,8 +2,12 @@
 # import fileinput, os, sys, getopt
 
 import sys
+import os
+import yaml
 
 from . import database_actions
+
+# deniz: TODO: refactor verbose and check like in other tools (eg. esm_runscripts)
 from .cli import verbose, check
 
 from .general_stuff import (
@@ -33,6 +37,11 @@ def main_flow(parsed_args, target):
     # Miguel: Move this somewhere else after talking to Paul and Dirk
     user_config["general"]["run_or_compile"] = "compiletime"
 
+    # deniz: small bugfix: when esm_master receives --verbose, it did not make
+    # it into the configuration since it was only a global variable
+    if verbose:
+        user_config["general"]["verbose"] = True
+    
 # kh 27.11.20
     if "modify" in parsed_args: 
         if "general" in user_config:
@@ -50,14 +59,26 @@ def main_flow(parsed_args, target):
     # This will be a problem later with GEOMAR
     #setups2models.replace_last_vars(env)
 
+
     user_task = Task(target, setups2models, vcs, main_infos, complete_config)
+
     if verbose > 0:
         user_task.output()
 
     user_task.output_steps()
 
     if check:
+        # deniz: if the environment variable ESM_MASTER_DEBUG is also set dump
+        # the contents of the current config to stdout for more investigation 
+        if os.environ.get("ESM_MASTER_DEBUG", None):
+            print()
+            print("Contents of the complete_config:")
+            print("--------------------------------")
+            print(yaml.dump(complete_config, default_flow_style=False, indent=4) ) 
+        
+        print("esm_master: check mode is activated. Not executing the actions above")
         return 0
+    
     user_task.validate()
 
     user_task.execute(ignore_errors) #env)
@@ -70,4 +91,5 @@ def main_flow(parsed_args, target):
     if not parsed_args["keep"]:
         user_task.cleanup_script()
 
+    
     return 0
