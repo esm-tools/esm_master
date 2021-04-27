@@ -47,13 +47,13 @@ Voila! 🎉
 Configuration
 -------------
 
-The ``esm_master`` tool is configured via a YAML file, which can be found under your ``esm_tools`` directory: ``configs/esm_master``. This contains two files:
+The ``esm_master`` tool is configured via YAML files, which can be found under your ``esm_tools`` directory: ``configs/esm_software/esm_master/``. This contains two files:
 
-* ``setups2models.yaml``
+* ``esm-software.yaml``
 
 * ``esm_master.yaml``
 
-The first file stores the configuration for where to download specific versions of each Earth System Model, while the second configurations which commands the ``esm_master`` binary provides.
+The first file stores the information on where to download different components of ``esm_tools``, while the second configures which commands the ``esm_master`` binary provides. Information on how to download specific versions of each Earth System Model can be found in ``esm_tools/configs/components/`` folder under ``choose_version`` section of YAML file specific for each model.
 
 Credits
 -------
