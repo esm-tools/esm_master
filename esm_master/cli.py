@@ -11,8 +11,6 @@ from . import __version__
 
 def main():
 
-    from esm_motd import check_all_esm_packages
-    check_all_esm_packages()
     # global check, verbose
 
     parser = argparse.ArgumentParser(
@@ -68,6 +66,14 @@ def main():
     )
     parser.add_argument("--generate_tab_complete", action="store_true")
     parser.add_argument("--list_all_targets", action="store_true")
+
+    parser.add_argument(
+        "--no-motd",
+        help = "supress the printing of MOTD",
+        default = False,
+        action = "store_true"
+    )
+
     parsed_args = vars(parser.parse_args())
 
     global check
@@ -77,6 +83,7 @@ def main():
     check = False
     verbose = 0
     modify_config_file = False
+    no_motd = False
 
 
     if parsed_args:
@@ -90,9 +97,17 @@ def main():
             keep = parsed_args["keep"]
         if "modify" in parsed_args: 
             modify_config_file = parsed_args["modify"]
+        if "no_motd" in parsed_args: 
+            no_motd = parsed_args["no_motd"]
 
     if not target:
         target = ""
+
+    
+    from esm_motd import check_all_esm_packages
+    
+    if not no_motd:
+        check_all_esm_packages()
 
     from .esm_master import main_flow
     main_flow(parsed_args, target)
