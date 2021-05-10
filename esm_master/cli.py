@@ -8,6 +8,8 @@ verbose = 0
 # import logging
 # logging.basicConfig(level=logging.DEBUG)
 from . import __version__
+from esm_motd import check_all_esm_packages
+from .esm_master import main_flow
 
 def main():
 
@@ -103,13 +105,9 @@ def main():
     if not target:
         target = ""
 
-    
-    from esm_motd import check_all_esm_packages
-    
     if not no_motd:
         check_all_esm_packages()
 
-    from .esm_master import main_flow
     main_flow(parsed_args, target)
 
 
