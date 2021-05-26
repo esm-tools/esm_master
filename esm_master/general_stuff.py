@@ -1,10 +1,9 @@
+import os
+import sys
 import esm_tools
 import esm_rcfile
 import esm_parser
-import os
-import sys
 
-from .cli import verbose
 
 ######################################################################################
 ##################################### globals ########################################
@@ -131,7 +130,7 @@ def write_minimal_user_config(config):
 
 
 class GeneralInfos:
-    def __init__(self):
+    def __init__(self, parsed_args):
 
         self.config = esm_parser.yaml_file_to_dict(CONFIG_YAML)
         self.emc = self.read_and_update_conf_files()
@@ -139,7 +138,7 @@ class GeneralInfos:
         self.display_kinds = self.get_display_kinds()
 
 
-        if verbose > 1:
+        if parsed_args.get("verbose", 0):
             self.output()
 
     def read_and_update_conf_files(self):
@@ -213,7 +212,7 @@ class GeneralInfos:
 
 
 class version_control_infos:
-    def __init__(self):
+    def __init__(self, parsed_args):
         self.config = {}
         vcs_files = [f for f in os.listdir(VCS_FOLDER)]
         self.known_repos = []
@@ -235,7 +234,7 @@ class version_control_infos:
                     todo = entry.replace("_command", "")
                     if todo not in self.known_todos:
                         self.known_todos.append(todo)
-        if verbose > 1:
+        if parsed_args.get("verbose", 0):
             self.output()
 
     def assemble_command(self, package, todo, setup_info, general):

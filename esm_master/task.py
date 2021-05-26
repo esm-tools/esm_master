@@ -3,16 +3,15 @@ import sys
 import subprocess
 import shlex  # contains shlex.split that respects quoted strings
 
-from .software_package import software_package
+# deniz: it is better to use more pathlib in the future so that dir/path
+# operations will be more portable (supported since Python 3.4, 2014)
+import pathlib
 
-from .cli import verbose
+from .software_package import software_package
 
 import esm_environment
 import esm_plugin_manager
 
-# deniz: it is better to use more pathlib in the future so that dir/path
-# operations will be more portable (supported since Python 3.4, 2014)
-import pathlib
 
 
 def install(package):
@@ -40,7 +39,7 @@ def install(package):
 class Task:
     """What you can do with a software_package, e.g. comp-awicm-2.0"""
 
-    def __init__(self, raw, setup_info, vcs, general, complete_config):
+    def __init__(self, raw, setup_info, vcs, general, complete_config, parsed_args):
         if raw == "default":
             raw = ""
         if raw == "drytestall":
@@ -49,7 +48,8 @@ class Task:
                 for todo in package.targets:
                     try:
                         print(todo + "-" + package.raw_name)
-                        newtask = Task(todo + "-" + package.raw_name, setup_info, vcs)
+                        newtask = Task(todo + "-" + package.raw_name, 
+                            setup_info, vcs, parsed_args)
                         newtask.output_steps()
                     except:
                         print("Problem found with target " + newtask.raw_name)
@@ -95,7 +95,8 @@ class Task:
         if not self.todo in setup_info.meta_todos:
             self.check_if_target(setup_info)
 
-        self.subtasks = self.get_subtasks(setup_info, vcs, general, complete_config)
+        self.subtasks = self.get_subtasks(setup_info, vcs, general, 
+            complete_config, parsed_args)
         self.only_subtask = self.validate_only_subtask()
         self.ordered_tasks = self.order_subtasks(setup_info, vcs, general)
 
@@ -105,10 +106,11 @@ class Task:
         self.dir_list = self.list_required_dirs()
         self.command_list, self.shown_command_list = self.assemble_command_list()
 
-        if verbose > 1:
+        if parsed_args.get('verbose', 0):
             self.output()
 
-    def get_subtasks(self, setup_info, vcs, general, complete_config):
+    def get_subtasks(self, setup_info, vcs, general, complete_config, 
+        parsed_args):
         subtasks = []
         if self.todo in setup_info.meta_todos:
             todos = setup_info.meta_command_order[self.todo]
@@ -130,6 +132,7 @@ class Task:
                             vcs,
                             general,
                             complete_config,
+                            parsed_args
                         )
                     )
         if subtasks == [] and self.todo in setup_info.meta_todos:
@@ -149,6 +152,7 @@ class Task:
                             vcs,
                             general,
                             complete_config,
+                            parsed_args
                         )
                     )
         return subtasks
