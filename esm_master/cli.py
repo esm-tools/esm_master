@@ -2,9 +2,6 @@
 import argparse
 import sys
 
-
-check = False
-verbose = 0
 # import logging
 # logging.basicConfig(level=logging.DEBUG)
 from . import __version__
@@ -12,8 +9,6 @@ from esm_motd import check_all_esm_packages
 from .esm_master import main_flow
 
 def main():
-
-    # global check, verbose
 
     parser = argparse.ArgumentParser(
         prog="esm_master",
@@ -77,9 +72,6 @@ def main():
     )
 
     parsed_args = vars(parser.parse_args())
-
-    global check
-    global verbose
 
     target = ""
     check = False
