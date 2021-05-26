@@ -7,9 +7,6 @@ import yaml
 
 from . import database_actions
 
-# deniz: TODO: refactor verbose and check like in other tools (eg. esm_runscripts)
-from .cli import verbose, check
-
 from .general_stuff import (
         GeneralInfos, 
         version_control_infos, 
@@ -26,8 +23,8 @@ from .task import Task
 
 def main_flow(parsed_args, target):
 
-    main_infos = GeneralInfos()
-    vcs = version_control_infos()
+    main_infos = GeneralInfos(parsed_args)
+    vcs = version_control_infos(parsed_args)
 
     setups2models = setup_and_model_infos(vcs, main_infos, parsed_args)
     tab_completion(parsed_args, setups2models)
@@ -37,9 +34,9 @@ def main_flow(parsed_args, target):
     # Miguel: Move this somewhere else after talking to Paul and Dirk
     user_config["general"]["run_or_compile"] = "compiletime"
 
-    # deniz: small bugfix: when esm_master receives --verbose, it did not make
-    # it into the configuration since it was only a global variable
-    if verbose:
+    # deniz: verbose is supposed to be a boolean right? It is initialized as
+    # 0 in cli.py. Is it then a debug_level? 
+    if parsed_args.get("verbose", 0):
         user_config["general"]["verbose"] = True
     
 # kh 27.11.20
@@ -60,14 +57,15 @@ def main_flow(parsed_args, target):
     #setups2models.replace_last_vars(env)
 
 
-    user_task = Task(target, setups2models, vcs, main_infos, complete_config)
+    user_task = Task(target, setups2models, vcs, main_infos, complete_config,
+        parsed_args)
 
-    if verbose > 0:
+    if parsed_args.get('verbose', 0):
         user_task.output()
 
     user_task.output_steps()
 
-    if check:
+    if parsed_args.get("check", False):
         # deniz: if the environment variable ESM_MASTER_DEBUG is also set dump
         # the contents of the current config to stdout for more investigation 
         if os.environ.get("ESM_MASTER_DEBUG", None):
@@ -90,6 +88,5 @@ def main_flow(parsed_args, target):
 
     if not parsed_args["keep"]:
         user_task.cleanup_script()
-
     
     return 0
