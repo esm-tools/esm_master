@@ -107,7 +107,7 @@ def combine_components_yaml(parsed_args):
 
     #esm_parser.pprint_config(components_dict)
     #sys.exit(0)
-    return components_dict
+    return components_dict, relevant_entries
 
 
 
@@ -333,14 +333,14 @@ class setup_and_model_infos:
     def __init__(self, vcs, general, parsed_args):
 
         if not os.path.isfile(ESM_MASTER_PICKLE):
-            self.config = combine_components_yaml(parsed_args)
+            self.config, self.relevant_entries = combine_components_yaml(parsed_args)
             save_pickle(self.config, ESM_MASTER_PICKLE)
 
         elif "list_all_packages" in parsed_args:
             self.config = load_pickle(ESM_MASTER_PICKLE)
 
         else:
-            self.config = combine_components_yaml(parsed_args)
+            self.config, self.relevant_entries = combine_components_yaml(parsed_args)
             save_pickle(self.config, ESM_MASTER_PICKLE)
 
         self.model_kinds = list(self.config.keys())
@@ -478,6 +478,15 @@ class setup_and_model_infos:
         esm_parser.recursive_run_function(
             [], self.config, "atomic", esm_parser.find_variable, self.config, [], True,
         )
+
+    def update_relevant_entries_with_config(self, config):
+        for component in config:
+            for entry in self.relevant_entries:
+                if (
+                    entry in config[component]
+                    and component in self.config["components"]
+                ):
+                    self.config["components"][component][entry] = config[component][entry]
 
     def update_packages(self, vcs, general):
         for package in self.all_packages:
