@@ -49,6 +49,6 @@ setup(
     test_suite="tests",
     tests_require=test_requirements,
     url="https://github.com/dbarbi/esm_master",
-    version="5.1.2",
+    version="5.1.3",
     zip_safe=False,
 )
