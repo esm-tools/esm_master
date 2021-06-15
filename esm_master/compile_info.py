@@ -699,9 +699,19 @@ class setup_and_model_infos:
         # according to the model name, ie. first variable of the tuple
         alphabetical_dict = {}
         for kind in sorted_display:
+            # sort the models within each `kind`
             d = dict( sorted(sorted_display[kind].items(), 
                 key = lambda item: item[0].lower()) )
             alphabetical_dict[kind] = d
+
+            # sort the versions within each `model`
+            for model in alphabetical_dict[kind]:
+                # only if it has version : target node, ie omit the models 
+                # without version
+                if isinstance(alphabetical_dict[kind][model], dict):
+                    d2 = dict( sorted(alphabetical_dict[kind][model].items(),
+                        key = lambda item : item[0].lower()) )
+                    alphabetical_dict[kind][model] = d2
          
         colorama.init(autoreset = True)
         for kind in alphabetical_dict:
@@ -721,7 +731,7 @@ class setup_and_model_infos:
                     for version in alphabetical_dict[kind][model]:
                         targets = alphabetical_dict[kind][model][version]
                         print(f"{colorama.Fore.MAGENTA}        "\
-                              f"{version:<{max_version_length}}:", end = " ")
+                              f"{version:<{max_version_length}} :", end = " ")
                         print(*targets, sep="  ")
             print()
 
