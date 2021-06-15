@@ -720,7 +720,9 @@ class setup_and_model_infos:
                 print(f"    {colorama.Fore.CYAN}{model}:")
                 # some models (eg. setups -> oifsamip don't have a version)
                 if isinstance(alphabetical_dict[kind][model], list):
-                    print(f"        " + str(alphabetical_dict[kind][model]))
+                    targets = alphabetical_dict[kind][model]
+                    print(f"        ", end = "")
+                    print(*targets, sep = "  ")
                 
                 # for the rest of the models [kind][model] will further yield
                 # version : targets
