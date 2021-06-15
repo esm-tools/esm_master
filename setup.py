@@ -15,6 +15,7 @@ requirements = [
     "esm_parser @ git+https://github.com/esm-tools/esm_parser.git",
     "esm_environment @ git+https://github.com/esm-tools/esm_environment.git",
     "esm_rcfile @ git+https://github.com/esm-tools/esm_rcfile.git",
+    "colorama",
 ]
 
 setup_requirements = []
