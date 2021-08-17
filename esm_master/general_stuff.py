@@ -138,7 +138,7 @@ class GeneralInfos:
         self.display_kinds = self.get_display_kinds()
 
 
-        if parsed_args.get("verbose", 0):
+        if parsed_args.get("verbose", False):
             self.output()
 
     def read_and_update_conf_files(self):
@@ -234,7 +234,7 @@ class version_control_infos:
                     todo = entry.replace("_command", "")
                     if todo not in self.known_todos:
                         self.known_todos.append(todo)
-        if parsed_args.get("verbose", 0):
+        if parsed_args.get("verbose", False):
             self.output()
 
     def assemble_command(self, package, todo, setup_info, general):
