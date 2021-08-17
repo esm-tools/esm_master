@@ -1,6 +1,7 @@
 import os, sys, re
 import copy
 import asyncio
+from collections.abc import Iterable
 
 import pickle
 
@@ -97,13 +98,24 @@ def combine_components_yaml(parsed_args):
         # TODO(PG): Switch around async optional
         #get_all_package_info(os.listdir(cat_dir), cat, cat_dir, components_dict, relevant_entries, parsed_args)
     default_infos = {}
-    for i in os.listdir(DEFAULTS_DIR):
+
+    # get the files in the defaults directory and exclude general.yaml
+    yaml_files = os.listdir(DEFAULTS_DIR)
+    if 'general.yaml' in yaml_files:
+        yaml_files.remove('general.yaml')
+
+    for yaml_file in yaml_files:
         if parsed_args.get("verbose", False):
-            print(f"Reading file {DEFAULTS_DIR}/{i}")
-        file_contents = esm_parser.yaml_file_to_dict(DEFAULTS_DIR + "/" + i)
+            print(f"Reading file {DEFAULTS_DIR}/{yaml_file}")
+        file_contents = esm_parser.yaml_file_to_dict(f"{DEFAULTS_DIR}/{yaml_file}")
         default_infos.update(file_contents)
+        
+    general_config = {}
+    if 'general.yaml' in os.listdir(DEFAULTS_DIR):
+        general_config = esm_parser.yaml_file_to_dict(f"{DEFAULTS_DIR}/general.yaml")
 
     components_dict["defaults"] = default_infos
+    components_dict["general"] = general_config
 
     #esm_parser.pprint_config(components_dict)
     #sys.exit(0)
@@ -352,6 +364,12 @@ class setup_and_model_infos:
         for kind in self.model_kinds:
             for model in self.config[kind].keys():
                 version = None
+
+                # if the [kind][model] is not an iterable like list or dict
+                # then continue with the next item
+                if not isinstance(self.config[kind][model], Iterable):
+                    continue
+                    
                 if "choose_version" in self.config[kind][model]:
                     for version in self.config[kind][model]["choose_version"]:
                         for entry in self.config[kind][model]["choose_version"][
@@ -498,6 +516,12 @@ class setup_and_model_infos:
         for kind in self.model_kinds:
             for model in config[kind]:
                 version = None
+
+                # if the [kind][model] is not an iterable like list or dict
+                # then continue with the next item
+                if not isinstance(config[kind][model], Iterable):
+                    continue
+
                 if "available_versions" in config[kind][model]:
                     for version in config[kind][model]["available_versions"]:
                         packages.append(
