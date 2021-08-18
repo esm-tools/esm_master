@@ -99,20 +99,19 @@ def combine_components_yaml(parsed_args):
         #get_all_package_info(os.listdir(cat_dir), cat, cat_dir, components_dict, relevant_entries, parsed_args)
     default_infos = {}
 
-    # get the files in the defaults directory and exclude general.yaml
+    # get the files in the defaults directory and exclude general.yaml. If 
+    # general.yaml file exits then construct config[general] from this file
+    general_config = {}
     yaml_files = os.listdir(DEFAULTS_DIR)
     if 'general.yaml' in yaml_files:
         yaml_files.remove('general.yaml')
+        general_config = esm_parser.yaml_file_to_dict(f"{DEFAULTS_DIR}/general.yaml")
 
     for yaml_file in yaml_files:
         if os.getenv("ESM_MASTER_DEBUG"):
             print(f"Reading file {DEFAULTS_DIR}/{yaml_file}")
         file_contents = esm_parser.yaml_file_to_dict(f"{DEFAULTS_DIR}/{yaml_file}")
         default_infos.update(file_contents)
-        
-    general_config = {}
-    if 'general.yaml' in os.listdir(DEFAULTS_DIR):
-        general_config = esm_parser.yaml_file_to_dict(f"{DEFAULTS_DIR}/general.yaml")
 
     components_dict["defaults"] = default_infos
     components_dict["general"] = general_config
