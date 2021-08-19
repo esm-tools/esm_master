@@ -106,7 +106,7 @@ class Task:
         self.dir_list = self.list_required_dirs()
         self.command_list, self.shown_command_list = self.assemble_command_list()
 
-        if parsed_args.get('verbose', 0):
+        if parsed_args.get('verbose', False):
             self.output()
 
     def get_subtasks(self, setup_info, vcs, general, complete_config, 
