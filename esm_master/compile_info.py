@@ -98,10 +98,16 @@ def combine_components_yaml(parsed_args):
         # TODO(PG): Switch around async optional
         #get_all_package_info(os.listdir(cat_dir), cat, cat_dir, components_dict, relevant_entries, parsed_args)
     default_infos = {}
-    for i in os.listdir(DEFAULTS_DIR):
-        if parsed_args.get("verbose", 0) > 1:
-            print(f"Reading file {DEFAULTS_DIR}/{i}")
-        file_contents = esm_parser.yaml_file_to_dict(DEFAULTS_DIR + "/" + i)
+
+    # If general.yaml file exits ignore it
+    yaml_files = os.listdir(DEFAULTS_DIR)
+    if 'general.yaml' in yaml_files:
+        yaml_files.remove('general.yaml')
+
+    for yaml_file in yaml_files:
+        if os.getenv("ESM_MASTER_DEBUG"):
+            print(f"Reading file {DEFAULTS_DIR}/{yaml_file}")
+        file_contents = esm_parser.yaml_file_to_dict(f"{DEFAULTS_DIR}/{yaml_file}")
         default_infos.update(file_contents)
 
     components_dict["defaults"] = default_infos
@@ -121,11 +127,11 @@ async def get_all_package_info(packages, cat, cat_dir, components_dict,
 #def get_all_package_info(packages, cat, cat_dir, components_dict, relevant_entries, parsed_args):
     tasks = []
     # TODO(PG): Better logging (see GH Issue #116)
-    if parsed_args.get("verbose", 0) > 1:
+    if os.getenv("ESM_MASTER_DEBUG"):
         print(f"packages={packages}")
     for package in packages:
         # TODO(PG): Better logging (see GH Issue #116)
-        if parsed_args.get("verbose", 0) > 1:
+        if os.getenv("ESM_MASTER_DEBUG"):
             print(f"Getting {package}")
         # TODO(PG): Switch around async optional
         #task = get_one_package_info(package, cat, cat_dir, components_dict, relevant_entries)
@@ -144,14 +150,14 @@ async def get_one_package_info(package, cat, cat_dir, components_dict,
 #def get_one_package_info(package, cat, cat_dir, components_dict, relevant_entries, parsed_args):
 
     # TODO(PG): Better logging (see GH Issue #116)
-    if parsed_args.get("verbose", 0) > 1:
+    if os.getenv("ESM_MASTER_DEBUG"):
         print(f"Working on package={package}, cat={cat}, cat_dir={cat_dir}")
 
     package_dir = cat_dir + package + "/"
 
     default_file = package_dir + package + ".yaml"
     # TODO(PG): Better logging (see GH Issue #116)
-    if parsed_args.get("verbose", 0) > 1:
+    if os.getenv("ESM_MASTER_DEBUG"):
         print(f"default_file={default_file}")
 
     versioned_files = [
@@ -161,18 +167,18 @@ async def get_one_package_info(package, cat, cat_dir, components_dict,
             if i.endswith(".yaml")
             ]
     # TODO(PG): Better logging (see GH Issue #116)
-    if parsed_args.get("verbose", 0) > 1:
+    if os.getenv("ESM_MASTER_DEBUG"):
         print(f"versioned_files={versioned_files}")
 
     comp_config = esm_parser.yaml_file_to_dict(default_file)
     # TODO(PG): Better logging (see GH Issue #116)
-    if parsed_args.get("verbose", 0) > 1:
+    if os.getenv("ESM_MASTER_DEBUG"):
         if not comp_config:
             print(f"Whoops, got False-y thingy!")
-    if parsed_args.get("verbose", 0) > 1:
+    if os.getenv("ESM_MASTER_DEBUG"):
         print (f'...reading file {default_file}')
     if get_correct_entry(comp_config, {}, "version") == {}:
-        if parsed_args.get("verbose", 0) > 1:
+        if os.getenv("ESM_MASTER_DEBUG"):
             print(f'Var "version" is missing in yaml file for package {package}. ')
             print('Trying to set to "*"...')
         comp_config["version"] = "*"
@@ -180,11 +186,11 @@ async def get_one_package_info(package, cat, cat_dir, components_dict,
     package_conf = get_relevant_info(relevant_entries, comp_config)
 
     for conf_file in versioned_files:
-        if parsed_args.get("verbose", 0) > 1:
+        if os.getenv("ESM_MASTER_DEBUG"):
             print (f'...reading file {conf_file}')
         add_config = esm_parser.yaml_file_to_dict(conf_file)
         if get_correct_entry(add_config, {}, "version") == {}:
-            if parsed_args.get("verbose", 0) > 1:
+            if os.getenv("ESM_MASTER_DEBUG"):
                 print(f'Var "version" is missing in yaml file for package {package}. ')
                 print('Trying to set to "*"...')
             add_config["version"] = "*"
@@ -373,7 +379,7 @@ class setup_and_model_infos:
         self.all_packages = self.list_all_packages(vcs, general)
         self.update_packages(vcs, general)
 
-        if parsed_args.get("verbose", 0) > 1:
+        if parsed_args.get("verbose", False):
             self.output()
 
 
