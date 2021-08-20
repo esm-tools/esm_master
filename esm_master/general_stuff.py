@@ -121,7 +121,7 @@ def write_minimal_user_config(config):
 
     if 'general.yaml' in os.listdir(DEFAULTS_DIR):
         general_config = esm_parser.yaml_file_to_dict(f"{DEFAULTS_DIR}/general.yaml")
-    user_config["general"].update(general_config)
+        user_config["general"].update(general_config)
 
     return user_config
 
