@@ -36,7 +36,7 @@ def main_flow(parsed_args, target):
 
     # deniz: verbose is supposed to be a boolean right? It is initialized as
     # 0 in cli.py. Is it then a debug_level? 
-    if parsed_args.get("verbose", 0):
+    if parsed_args.get("verbose", False):
         user_config["general"]["verbose"] = True
     
 # kh 27.11.20
@@ -62,7 +62,7 @@ def main_flow(parsed_args, target):
     user_task = Task(target, setups2models, vcs, main_infos, complete_config,
         parsed_args)
 
-    if parsed_args.get('verbose', 0):
+    if parsed_args.get('verbose', False):
         user_task.output()
 
     user_task.output_steps()

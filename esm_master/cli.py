@@ -29,7 +29,7 @@ def main():
         help="show what would be done, not doing anything",
     )
     parser.add_argument(
-        "--verbose", "-v", action="count", default=0, help="toggle verbose mode"
+        "--verbose", "-v", action="count", default=False, help="toggle verbose mode"
     )
     parser.add_argument(
         "--version", action="version", version="%(prog)s " + __version__
@@ -75,7 +75,7 @@ def main():
 
     target = ""
     check = False
-    verbose = 0
+    verbose = False
     modify_config_file = False
     no_motd = False
 
