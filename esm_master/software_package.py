@@ -1,17 +1,24 @@
 ######################################################################################
 ############################## class "software_package" ##############################
 ######################################################################################
+import sys
 
 
 def replace_var(var, tag, value):
     if var and tag and value:
-        if type(var) == str:
+        # deniz, TODO: In the future I will implement a better way around
+        if isinstance(var, (str, int, float)):
+            var = str(var)
             return var.replace("${" + tag + "}", value)
         elif type(var) == list:
             newlist = []
             for entry in var:
                 newlist.append(replace_var(entry, tag, value))
             return newlist
+        else:
+            print(f"ERROR: unresolved variable: {var}")
+            sys.exit(1)
+
 
 
 class software_package:
