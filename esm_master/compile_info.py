@@ -387,7 +387,10 @@ class setup_and_model_infos:
             target, self
         )
         if not version:
-            version = "default"
+            # deniz: I think it is better to leave the version string empty
+            # rather than default since it can be used by some model
+            # version = "default"
+            version = ""
 
         if model in self.config[kind]:
             reduced_config[model] = self.config[kind][model]
