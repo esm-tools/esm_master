@@ -14,9 +14,10 @@ import esm_plugin_manager
 
 
 
-# Yes, Type Hints. Python >= 3.6 supports them. Small steps towards stability,
+# Yes, Type Hints. Python >= 3.5 supports them. Small steps towards stability,
 # until Paul goes crazy and redoes everything in Go. Or Rust. Or Brainfuck
 # (yes, that's not made up: https://en.wikipedia.org/wiki/Brainfuck)
+# Docs for typing: https://docs.python.org/3/library/typing.html
 def install(package: str) -> None:
     """
     Checks if a package is already installed in the system and if it's not, then it
@@ -41,7 +42,7 @@ def install(package: str) -> None:
     if not package_name in installed_packages:
         try:
             subprocess.check_call([sys.executable, "-m", "pip", "install", package])
-        except:
+        except OSError:  # PermissionDeniedError would be nicer...
             subprocess.check_call([sys.executable, "-m", "pip", "install", "--user", package])
 
 ######################################################################################
