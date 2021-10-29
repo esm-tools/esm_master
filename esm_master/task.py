@@ -36,9 +36,6 @@ def install(package: str) -> None:
     """
     package_name = package.split("/")[-1]
     installed_packages = esm_plugin_manager.find_installed_plugins()
-        subprocess.check_call(
-            [sys.executable, "-m", "pip", "install", "--user", package]
-        )
     if not package_name in installed_packages:
         try:
             subprocess.check_call([sys.executable, "-m", "pip", "install", package])
